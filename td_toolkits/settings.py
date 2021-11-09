@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Add our new application
+    'tr2calculator.apps.Tr2CalculatorConfig',
 ]
 
 MIDDLEWARE = [
