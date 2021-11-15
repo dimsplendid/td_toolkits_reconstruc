@@ -88,7 +88,7 @@ def query_table(query, model, writer):
 
     for result in results:
 
-        row = ['', '', '', '', '', '', '', '']
+        row = ['N/A'] * 8
         if not(result.name is None):
             row[0] = result.name
         if not(result.LC is None):
@@ -119,7 +119,7 @@ def export_results_csv(request):
                 'PI': form.cleaned_data['PI'],
                 'Seal': form.cleaned_data['Seal'],
             }
-            response = HttpResponse(content_type='text/csv; charset=utf-8')
+            response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
             response['Content-Disposition'] = 'attachment; filename="results.csv"'
             writer = csv.writer(response)
             writer.writerow(['Item', 'LC', 'PI', 'Seal',

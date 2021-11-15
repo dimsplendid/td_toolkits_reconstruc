@@ -96,7 +96,7 @@ class VHR(models.Model):
     file_source = models.CharField(max_length=200, help_text="file name")
 
     def cond(self):
-        return self.condition + 'V: ' + str(self.measure_voltage) + ', nu: ' + str(self.measure_freq)
+        return self.condition + ', V: ' + str(self.measure_voltage) + ', freq: ' + str(self.measure_freq)
 
 
 class DeltaAngle(models.Model):
@@ -113,7 +113,7 @@ class DeltaAngle(models.Model):
     file_source = models.CharField(max_length=200, help_text="file name")
 
     def cond(self):
-        return '72 hr, Vp-p: ' + str(self.measure_voltage) + ', nu: ' + str(self.measure_freq)
+        return '72 hr, Vp-p: ' + str(self.measure_voltage) + ', freq: ' + str(self.measure_freq)
 
 
 class Adhesion(models.Model):
