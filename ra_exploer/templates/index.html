@@ -1,0 +1,57 @@
+{% extends "base_generic.html" %} {% block content %}
+<h1>RA Exploer</h1>
+<hr />
+<!-- <form method="post" action="{% url 'export_results_csv' %}">
+    {% csrf_token %} {{ form.as_table }}
+    <input type="submit" value="Search" />
+</form>
+<p>test</p> -->
+<form method="post" action="{% url 'export_results_csv' %}">
+    {% csrf_token %}
+    <table>
+        <thead>
+            <tr>
+                <th>LC <a href="">[+]</a></th>
+                <th>PI <a href="">[+]</a></th>
+                <th>seal <a href="">[+]</a></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <select multiple name="LC">
+                        <option>ALL</option>
+                        {% for LC in LCs %}
+                        <option>{{ LC.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>
+                    <select multiple name="PI">
+                        <option>ALL</option>
+                        {% for PI in PIs %}
+                        <option>{{ PI.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>
+                    <select multiple name="Seal">
+                        <option>ALL</option>
+                        {% for seal in seals %}
+                        <option>{{ seal.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <input type="submit" value="Search" />
+</form>
+<!-- <p>LC: {{ query.LC|join:", " }}</p>
+<p>PI: {{ query.PI|join:", " }}</p>
+<p>Seal: {{ query.Seal|join:", " }}</p>
+<p>LC: {{ query.LC }}</p>
+<p>PI: {{ query.PI }}</p>
+<p>Seal: {{ query.Seal }}</p>
+<p>{{ form.cleaned_data }}</p> -->
+{% endblock %}
