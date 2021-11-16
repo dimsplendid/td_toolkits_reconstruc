@@ -9,6 +9,7 @@ import csv
 # Create your views here.
 
 from .models import LiquidCrystal, Polyimide, Seal, Vendor, TemplateItem, VHR, DeltaAngle, Adhesion
+from .models import LowTemperatrueOperation, LowTemperatrueStorage, ACIS
 from .forms import SearchFrom
 
 
@@ -133,5 +134,8 @@ def export_results_csv(request):
             query_table(query, VHR, writer)
             query_table(query, DeltaAngle, writer)
             query_table(query, Adhesion, writer)
+            query_table(query, LowTemperatrueOperation, writer)
+            query_table(query, LowTemperatrueStorage, writer)
+            query_table(query, ACIS, writer)
 
             return response

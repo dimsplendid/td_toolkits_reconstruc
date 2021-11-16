@@ -70,11 +70,13 @@ class TemplateCond(models.Model):
 
     def __str__(self):
         return self.name
+
     def cond(self):
         return self.desc
-    
+
     def value_remark(self):
         return ''
+
 
 class VHR(models.Model):
     name = 'VHR(heat)'
@@ -95,8 +97,10 @@ class VHR(models.Model):
         default='Before UV'
     )
 
-    measure_voltage = models.DecimalField(max_digits=5, decimal_places=2, default=1.0)
-    measure_freq = models.DecimalField(max_digits=5, decimal_places=2, default=0.6)
+    measure_voltage = models.DecimalField(
+        max_digits=5, decimal_places=2, default=1.0)
+    measure_freq = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0.6)
     value = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     unit = '%'
     vendor = ForeignKey(Vendor, on_delete=models.RESTRICT, null=True)
@@ -104,7 +108,7 @@ class VHR(models.Model):
 
     def cond(self):
         return self.condition + ', V: ' + str(self.measure_voltage) + ' volt, freq: ' + str(self.measure_freq) + ' Hz'
-    
+
     def value_remark(self):
         return ''
 
@@ -116,9 +120,12 @@ class DeltaAngle(models.Model):
     PI = ForeignKey(Polyimide, on_delete=models.RESTRICT,
                     null=True, blank=True)
     seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
-    measure_voltage = models.DecimalField(max_digits=5, decimal_places=2, default=14.0)
-    measure_freq = models.DecimalField(max_digits=5, decimal_places=2, default=60.0)
-    measure_time = models.DecimalField(max_digits=5, decimal_places=2, default=72.0)
+    measure_voltage = models.DecimalField(
+        max_digits=5, decimal_places=2, default=14.0)
+    measure_freq = models.DecimalField(
+        max_digits=5, decimal_places=2, default=60.0)
+    measure_time = models.DecimalField(
+        max_digits=5, decimal_places=2, default=72.0)
     value = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     vendor = ForeignKey(Vendor, on_delete=models.RESTRICT, null=True)
     unit = '°'
@@ -126,9 +133,10 @@ class DeltaAngle(models.Model):
 
     def cond(self):
         return str(self.measure_time) + ' hr, Vp-p: ' + str(self.measure_voltage) + ' volt, freq: ' + str(self.measure_freq) + ' Hz'
-    
+
     def value_remark(self):
         return ''
+
 
 class Adhesion(models.Model):
     name = 'adhesion test'
@@ -143,11 +151,11 @@ class Adhesion(models.Model):
     value = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     unit = 'kgw'
     judgement = models.CharField(
-        max_length=2, 
+        max_length=2,
         choices=(
             ('NG', 'NG'),
             ('OK', 'OK')
-        ), 
+        ),
         null=True,
         blank=True
     )
@@ -158,8 +166,10 @@ class Adhesion(models.Model):
 
     def cond(self):
         return self.condition
+
     def value_remark(self):
         return 'Judge: ' + str(self.judgement) + ' Peeling surface: ' + str(self.peeling)
+
 
 class LowTemperatrueStorage(models.Model):
     name = 'LTS'
@@ -191,10 +201,11 @@ class LowTemperatrueStorage(models.Model):
     file_source = models.CharField(max_length=200, help_text="file name")
 
     def cond(self):
-        return self.measure_temperature + ' °C, Storage: ' + self.storage_condtion + ', SLV%: ' + self.SLV_condtion + '% , Jar test seal: ' + self.JarTestSeal
-    
+        return str(self.measure_temperature) + ' °C, Storage: ' + self.storage_condtion + ', SLV%: ' + str(self.SLV_condtion) + '% , Jar test seal: ' + str(self.JarTestSeal)
+
     def value_remark(self):
         return ''
+
 
 class LowTemperatrueOperation(models.Model):
     name = 'LTO'
@@ -230,10 +241,11 @@ class LowTemperatrueOperation(models.Model):
     file_source = models.CharField(max_length=200, help_text="file name")
 
     def cond(self):
-        return self.measure_temperature + ' °C, Storage: ' + self.storage_condtion + ', SLV%: ' + self.SLV_condtion + '% , Jar test seal: ' + self.JarTestSeal
-    
+        return str(self.measure_temperature) + ' °C, Storage: ' + self.storage_condtion + ', SLV%: ' + str(self.SLV_condtion) + '% , Jar test seal: ' + str(self.JarTestSeal)
+
     def value_remark(self):
         return ''
+
 
 class ACIS(models.Model):
     name = 'AC IS'
@@ -243,14 +255,16 @@ class ACIS(models.Model):
                     null=True, blank=True)
     seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
 
-    device = CharField(max_length=20, null=True, blank=True, default='2211 Test Cell')
+    device = CharField(max_length=20, null=True,
+                       blank=True, default='2211 Test Cell')
     value = models.DecimalField(max_digits=4, decimal_places=2, null=True)
     unit = '%'
+    vendor = ForeignKey(Vendor, on_delete=models.RESTRICT, null=True)
 
     file_source = models.CharField(max_length=200, help_text="file name")
 
     def cond(self):
         return 'device: ' + str(self.device)
-    
+
     def value_remark(self):
         return ''
