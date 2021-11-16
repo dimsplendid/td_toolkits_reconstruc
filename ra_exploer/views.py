@@ -88,7 +88,7 @@ def query_table(query, model, writer):
 
     for result in results:
 
-        row = ['N/A'] * 8
+        row = ['N/A'] * 10
         if not(result.name is None):
             row[0] = result.name
         if not(result.LC is None):
@@ -97,14 +97,18 @@ def query_table(query, model, writer):
             row[2] = result.PI.name
         if not(result.seal is None):
             row[3] = result.seal.name
-        if not(result.cond is None):
-            row[4] = result.cond()
         if not(result.value is None):
-            row[5] = result.value
+            row[4] = result.value
+        if not(result.unit is None):
+            row[5] = result.unit
+        if not(result.value_remark is None):
+            row[6] = result.value_remark()
         if not(result.vendor is None):
-            row[6] = result.vendor.name
+            row[7] = result.vendor.name
+        if not(result.cond is None):
+            row[8] = result.cond()
         if not(result.file_source is None):
-            row[7] = result.file_source
+            row[9] = result.file_source
 
         writer.writerow(row)
     print('query finished')
@@ -123,7 +127,7 @@ def export_results_csv(request):
             response['Content-Disposition'] = 'attachment; filename="results.csv"'
             writer = csv.writer(response)
             writer.writerow(['Item', 'LC', 'PI', 'Seal',
-                             'Condition', 'Value', 'Vendor', 'file'])
+                             'Value', 'Unit', 'Value Remark', 'Vendor', 'Condition', 'file'])
 
             # need fixed?
             query_table(query, VHR, writer)

@@ -9,11 +9,11 @@
 <form method="post" action="{% url 'export_results_csv' %}">
     {% csrf_token %}
     <table>
-        <thead>
+        <thead style="text-align:center">
             <tr>
-                <th>LC <a href="">[+]</a></th>
-                <th>PI <a href="">[+]</a></th>
-                <th>seal <a href="">[+]</a></th>
+                <th>LC </th>
+                <th>PI </th>
+                <th>seal </th>
             </tr>
         </thead>
         <tbody>
@@ -45,7 +45,7 @@
             </tr>
         </tbody>
     </table>
-    <input type="submit" value="Search" />
+    <input class="btn-dark" type="submit" value="Search" />
 </form>
 <!-- <p>LC: {{ query.LC|join:", " }}</p>
 <p>PI: {{ query.PI|join:", " }}</p>
