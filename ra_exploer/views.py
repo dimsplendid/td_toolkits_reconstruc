@@ -88,7 +88,7 @@ def query_table(query, model, writer):
 
     for result in results:
 
-        row = ['N/A'] * 10
+        row = ['N.A.'] * 10
         if not(result.name is None):
             row[0] = result.name
         if not(result.LC is None):
