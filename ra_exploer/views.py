@@ -107,12 +107,12 @@ def query_table(query, model, writer):
             row[5] = result.unit
         if not(result.value_remark is None):
             row[6] = result.value_remark()
-        if not(result.vendor is None):
-            row[7] = result.vendor.name
+        if not(result.vender is None):
+            row[7] = result.vender.name
         if not(result.cond is None):
             row[8] = result.cond()
         if not(result.file_source is None):
-            row[9] = result.file_source
+            row[9] = result.file_source.name
 
         writer.writerow(row)
     print('query finished')

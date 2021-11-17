@@ -134,10 +134,10 @@ class Adhesion(models.Model):
     file_source = ForeignKey(File, on_delete=models.RESTRICT)
 
     def cond(self):
-        return self.condition
+        return 'Adhesion介面(T/C): ' + str(self.adhesion_interface) + '測試手法' + str(self.method)
 
     def value_remark(self):
-        return 'Adhesion介面(T/C): ' + str(self.adhesion_interface) + '測試手法' + str(self.method) + 'Peeling surface: ' + str(self.peeling)
+        return 'Peeling surface: ' + str(self.peeling)
 
 
 # class LowTemperatrueStorage(models.Model):
