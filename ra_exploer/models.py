@@ -93,7 +93,7 @@ class VHR(models.Model):
     file_source = ForeignKey(File, on_delete=models.RESTRICT)
 
     def cond(self):
-        return self.condition + ', V: ' + str(self.measure_voltage) + ' volt, freq: ' + str(self.measure_freq) + ' Hz, Temperature: ' + str(self.measure_temperature) + ' °C'
+        return self.UV_aging + ', V: ' + str(self.measure_voltage) + ' volt, freq: ' + str(self.measure_freq) + ' Hz, Temperature: ' + str(self.measure_temperature) + ' °C'
 
     def value_remark(self):
         return ''

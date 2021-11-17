@@ -55,11 +55,11 @@ def query_table(query, model, writer):
     print(query)
     # Todo
     if 'ALL' in query['LC']:
-        query['LC'] = list(LiquidCrystal.objects.all())
+        query['LC'] = LiquidCrystal.objects.all().values_list('name')
     if 'ALL' in query['PI']:
-        query['PI'] = list(Polyimide.objects.all())
-    if 'ALL' in query['LC']:
-        query['Seal'] = list(Seal.objects.all())
+        query['PI'] = Polyimide.objects.all().values_list('name')
+    if 'ALL' in query['Seal']:
+        query['Seal'] = Seal.objects.all().values_list('name')
     results = model.objects.filter(
         LC__name__in=query['LC'], PI__name__in=query['PI'], seal__name__in=query['Seal'])
 
@@ -107,8 +107,8 @@ def export_results_csv(request):
                              'Value', 'Unit', 'Value Remark', 'Vendor', 'Condition', 'file'])
 
             # need fixed?
-            # query_table(query, VHR, writer)
-            # query_table(query, DeltaAngle, writer)
+            query_table(query, VHR, writer)
+            query_table(query, DeltaAngle, writer)
             query_table(query, Adhesion, writer)
             query_table(query, LowTemperatrueOperation, writer)
             query_table(query, LowTemperatrueStorage, writer)
