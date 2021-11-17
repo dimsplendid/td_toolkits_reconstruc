@@ -47,11 +47,14 @@
     </table>
     <input class="btn-dark" type="submit" value="Search" />
 </form>
-<!-- <p>LC: {{ query.LC|join:", " }}</p>
-<p>PI: {{ query.PI|join:", " }}</p>
-<p>Seal: {{ query.Seal|join:", " }}</p>
-<p>LC: {{ query.LC }}</p>
-<p>PI: {{ query.PI }}</p>
-<p>Seal: {{ query.Seal }}</p>
-<p>{{ form.cleaned_data }}</p> -->
+<form action="{% url 'import_adhesion' %}" enctype="multipart/form-data" method="post">
+    {% csrf_token %}
+    {{ adhesion_form.as_table }}
+    <input type="submit" value="Adhesion Raw">
+</form>
+{% if adhesion_form.errors %}
+    <p style="color: red;">
+        Please correct the error{{ adhesion_form.errors|pluralize }} below.
+    </p>
+{% endif %}
 {% endblock %}

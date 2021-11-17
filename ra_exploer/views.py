@@ -1,16 +1,17 @@
-from django.http.response import HttpResponseRedirect
-from django.shortcuts import render
+from django.http.response import HttpResponseBadRequest, HttpResponseRedirect
+from django.shortcuts import redirect, render
 from django.urls.base import reverse
 from django.views.generic import TemplateView
 from django.http import HttpResponse
 from itertools import chain
 import csv
+from openpyxl.reader.excel import load_workbook
 
 # Create your views here.
 
-from .models import LiquidCrystal, Polyimide, Seal, Vendor, TemplateItem, VHR, DeltaAngle, Adhesion
-from .models import LowTemperatrueOperation, LowTemperatrueStorage, ACIS
-from .forms import SearchFrom
+from .forms import SearchFrom, UploadFileForm
+from .models import LiquidCrystal, Polyimide, Seal, Vender, File
+from .models import Adhesion
 
 
 class index(TemplateView):
@@ -30,21 +31,23 @@ def index(request):
     PIs = Polyimide.objects.all()
     seals = Seal.objects.all()
 
-    if request.method == 'POST':
-        form = SearchFrom(request.POST)
-        if form.is_valid():
-            query = {
-                'LC': form.cleaned_data['LC'],
-                'PI': form.cleaned_data['PI'],
-                'Seal': form.cleaned_data['Seal'],
-            }
-            # return HttpResponseRedirect(reverse('export_results_csv'))
-            return render(request, 'index.html', context=({'form': form, 'query': query, 'LCs': LCs, 'PIs': PIs, 'seals': seals}))
-
-    else:
-        form = SearchFrom
+    form = SearchFrom
+    adhesion_form = UploadFileForm
     # Render the HTML template index.html with the data in the context variable
-    return render(request, 'index.html', context=({'form': form, 'query': query, 'LCs': LCs, 'PIs': PIs, 'seals': seals}))
+    return render(
+        request, 
+        'index.html', 
+        context=(
+            {
+                'form': form, 
+                'query': query, 
+                'LCs': LCs, 
+                'PIs': PIs, 
+                'seals': seals,
+                'adhesion_form': adhesion_form,
+            }
+        )
+    )
 
 
 def query_table(query, model, writer):
@@ -131,11 +134,36 @@ def export_results_csv(request):
                              'Value', 'Unit', 'Value Remark', 'Vendor', 'Condition', 'file'])
 
             # need fixed?
-            query_table(query, VHR, writer)
-            query_table(query, DeltaAngle, writer)
+            # query_table(query, VHR, writer)
+            # query_table(query, DeltaAngle, writer)
             query_table(query, Adhesion, writer)
-            query_table(query, LowTemperatrueOperation, writer)
-            query_table(query, LowTemperatrueStorage, writer)
-            query_table(query, ACIS, writer)
+            # query_table(query, LowTemperatrueOperation, writer)
+            # query_table(query, LowTemperatrueStorage, writer)
+            # query_table(query, ACIS, writer)
 
             return response
+
+def import_adhesion(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            # print('valid!')
+            ws = load_workbook(filename=request.FILES['file'].file).worksheets[0]
+            header = True # using for skip header, it should have a nicer method?
+            
+            for row in ws.values:
+                if header:
+                    header = False
+                    continue
+                LC, _ = LiquidCrystal.objects.get_or_create(name=row[1])
+                PI, _ = Polyimide.objects.get_or_create(name=row[2])
+                seal, _ = Seal.objects.get_or_create(name=row[3])
+                vender, _ = Vender.objects.get_or_create(name=row[8])
+                file, _ = File.objects.get_or_create(name=row[9])
+                if not Adhesion.objects.filter(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file, adhesion_interface=row[5], method=row[6]).exists():
+                    Adhesion.objects.create(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file, adhesion_interface=row[5], method=row[6], value=row[4], peeling=row[7])
+            return redirect(reverse('index'))
+
+        else:
+            return HttpResponseBadRequest()      

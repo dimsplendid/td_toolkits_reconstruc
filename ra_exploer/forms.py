@@ -10,3 +10,6 @@ class SearchFrom(forms.Form):
         choices=list(Polyimide.objects.all().values_list('name', 'name'))+[('ALL', 'ALL')])
     Seal = forms.MultipleChoiceField(
         choices=list(Seal.objects.all().values_list('name', 'name'))+[('ALL', 'ALL')])
+
+class UploadFileForm(forms.Form):
+    file = forms.FileField(required=True, label='File to import')

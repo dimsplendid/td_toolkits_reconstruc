@@ -39,9 +39,9 @@ class Seal(models.Model):
         return self.name
 
 
-class Vendor(models.Model):
-    """Model record Vendor"""
-    name = models.CharField(max_length=200, help_text="Vendor name")
+class Vender(models.Model):
+    """Model record Vender"""
+    name = models.CharField(max_length=200, help_text="Vender name")
 
     class META:
         ordering = ['name']
@@ -49,93 +49,69 @@ class Vendor(models.Model):
     def __str__(self):
         return self.name
 
-
-class TemplateItem(models.Model):
-    """Test record experimental value and other properties"""
-    file_source = models.CharField(max_length=200, help_text="file name")
-    value = models.DecimalField(max_digits=5, decimal_places=2)
-    LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
-                    null=True, blank=True)
-    PI = ForeignKey(Polyimide, on_delete=models.RESTRICT,
-                    null=True, blank=True)
-    seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
-    cond = ForeignKey('TemplateCond', on_delete=models.RESTRICT, null=True)
-    vendor = ForeignKey(Vendor, on_delete=models.RESTRICT, null=True)
-
-
-class TemplateCond(models.Model):
-    name = models.CharField(max_length=20, help_text='conditon name')
-    desc = models.TextField(
-        max_length=1000, help_text='Enter the brief description of the condition')
-
+class File(models.Model):
+    name = models.CharField(max_length=200, help_text='Input file name')
     def __str__(self):
         return self.name
 
-    def cond(self):
-        return self.desc
+# class VHR(models.Model):
+#     name = 'VHR(heat)'
+#     LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
+#                     null=True, blank=True)
+#     PI = ForeignKey(Polyimide, on_delete=models.RESTRICT,
+#                     null=True, blank=True)
+#     seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
 
-    def value_remark(self):
-        return ''
+#     BeforeUV = 'Before UV'
+#     AfterUV = 'After UV'
+#     condition = models.CharField(
+#         max_length=10,
+#         choices=(
+#             (BeforeUV, 'Before UV'),
+#             (AfterUV, 'After UV')
+#         ),
+#         default='Before UV'
+#     )
 
+#     measure_voltage = models.DecimalField(
+#         max_digits=5, decimal_places=2, default=1.0)
+#     measure_freq = models.DecimalField(
+#         max_digits=5, decimal_places=2, default=0.6)
+#     value = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+#     unit = '%'
+#     vender = ForeignKey(Vender, on_delete=models.RESTRICT, null=True)
+#     file_source = models.CharField(max_length=200, help_text="file name")
 
-class VHR(models.Model):
-    name = 'VHR(heat)'
-    LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
-                    null=True, blank=True)
-    PI = ForeignKey(Polyimide, on_delete=models.RESTRICT,
-                    null=True, blank=True)
-    seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
+#     def cond(self):
+#         return self.condition + ', V: ' + str(self.measure_voltage) + ' volt, freq: ' + str(self.measure_freq) + ' Hz'
 
-    BeforeUV = 'Before UV'
-    AfterUV = 'After UV'
-    condition = models.CharField(
-        max_length=10,
-        choices=(
-            (BeforeUV, 'Before UV'),
-            (AfterUV, 'After UV')
-        ),
-        default='Before UV'
-    )
-
-    measure_voltage = models.DecimalField(
-        max_digits=5, decimal_places=2, default=1.0)
-    measure_freq = models.DecimalField(
-        max_digits=5, decimal_places=2, default=0.6)
-    value = models.DecimalField(max_digits=5, decimal_places=2, null=True)
-    unit = '%'
-    vendor = ForeignKey(Vendor, on_delete=models.RESTRICT, null=True)
-    file_source = models.CharField(max_length=200, help_text="file name")
-
-    def cond(self):
-        return self.condition + ', V: ' + str(self.measure_voltage) + ' volt, freq: ' + str(self.measure_freq) + ' Hz'
-
-    def value_remark(self):
-        return ''
+#     def value_remark(self):
+#         return ''
 
 
-class DeltaAngle(models.Model):
-    name = 'Δangle'
-    LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
-                    null=True, blank=True)
-    PI = ForeignKey(Polyimide, on_delete=models.RESTRICT,
-                    null=True, blank=True)
-    seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
-    measure_voltage = models.DecimalField(
-        max_digits=5, decimal_places=2, default=14.0)
-    measure_freq = models.DecimalField(
-        max_digits=5, decimal_places=2, default=60.0)
-    measure_time = models.DecimalField(
-        max_digits=5, decimal_places=2, default=72.0)
-    value = models.DecimalField(max_digits=5, decimal_places=2, null=True)
-    vendor = ForeignKey(Vendor, on_delete=models.RESTRICT, null=True)
-    unit = '°'
-    file_source = models.CharField(max_length=200, help_text="file name")
+# class DeltaAngle(models.Model):
+#     name = 'Δangle'
+#     LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
+#                     null=True, blank=True)
+#     PI = ForeignKey(Polyimide, on_delete=models.RESTRICT,
+#                     null=True, blank=True)
+#     seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
+#     measure_voltage = models.DecimalField(
+#         max_digits=5, decimal_places=2, default=14.0)
+#     measure_freq = models.DecimalField(
+#         max_digits=5, decimal_places=2, default=60.0)
+#     measure_time = models.DecimalField(
+#         max_digits=5, decimal_places=2, default=72.0)
+#     value = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+#     vender = ForeignKey(Vender, on_delete=models.RESTRICT, null=True)
+#     unit = '°'
+#     file_source = models.CharField(max_length=200, help_text="file name")
 
-    def cond(self):
-        return str(self.measure_time) + ' hr, Vp-p: ' + str(self.measure_voltage) + ' volt, freq: ' + str(self.measure_freq) + ' Hz'
+#     def cond(self):
+#         return str(self.measure_time) + ' hr, Vp-p: ' + str(self.measure_voltage) + ' volt, freq: ' + str(self.measure_freq) + ' Hz'
 
-    def value_remark(self):
-        return ''
+#     def value_remark(self):
+#         return ''
 
 
 class Adhesion(models.Model):
@@ -146,125 +122,118 @@ class Adhesion(models.Model):
                     null=True, blank=True)
     seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
 
-    condition = models.CharField(max_length=40, help_text='enter condition')
+    adhesion_interface = models.CharField(max_length=40, help_text='enter condition')
+    method = models.CharField(max_length=200)
 
-    value = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+    value = models.DecimalField(max_digits=5, decimal_places=2)
     unit = 'kgw'
-    judgement = models.CharField(
-        max_length=2,
-        choices=(
-            ('NG', 'NG'),
-            ('OK', 'OK')
-        ),
-        null=True,
-        blank=True
-    )
+    
     peeling = models.CharField(
         max_length=40, help_text="Enter peeling interface.", blank=True, null=True)
-    vendor = ForeignKey(Vendor, on_delete=models.RESTRICT, null=True)
-    file_source = models.CharField(max_length=200, help_text="file name")
+    vender = ForeignKey(Vender, on_delete=models.RESTRICT)
+    file_source = ForeignKey(File, on_delete=models.RESTRICT)
 
     def cond(self):
         return self.condition
 
     def value_remark(self):
-        return 'Judge: ' + str(self.judgement) + ' Peeling surface: ' + str(self.peeling)
+        return 'Adhesion介面(T/C): ' + str(self.adhesion_interface) + '測試手法' + str(self.method) + 'Peeling surface: ' + str(self.peeling)
 
 
-class LowTemperatrueStorage(models.Model):
-    name = 'LTS'
-    LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
-                    null=True, blank=True)
-    PI = ForeignKey(Polyimide, on_delete=models.RESTRICT,
-                    null=True, blank=True)
-    seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
+# class LowTemperatrueStorage(models.Model):
+#     name = 'LTS'
+#     LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
+#                     null=True, blank=True)
+#     PI = ForeignKey(Polyimide, on_delete=models.RESTRICT,
+#                     null=True, blank=True)
+#     seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
 
-    storage_condtion = models.CharField(
-        max_length=10,
-        choices=(
-            ('Bulk', 'Bulk'),
-            ('Test Cell', 'Test Cell')
-        )
-    )
+#     storage_condtion = models.CharField(
+#         max_length=10,
+#         choices=(
+#             ('Bulk', 'Bulk'),
+#             ('Test Cell', 'Test Cell')
+#         )
+#     )
 
-    SLV_condtion = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True)
-    JarTestSeal = ForeignKey(
-        Seal, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
-    measure_temperature = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True)
+#     SLV_condtion = models.DecimalField(
+#         max_digits=5, decimal_places=2, null=True)
+#     JarTestSeal = ForeignKey(
+#         Seal, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+#     measure_temperature = models.DecimalField(
+#         max_digits=5, decimal_places=2, null=True)
 
-    value = models.DecimalField(max_digits=3, decimal_places=1, null=True)
-    unit = 'days'
-    vendor = ForeignKey(Vendor, on_delete=models.RESTRICT, null=True)
+#     value = models.DecimalField(max_digits=3, decimal_places=1, null=True)
+#     unit = 'days'
+#     vender = ForeignKey(Vender, on_delete=models.RESTRICT, null=True)
 
-    file_source = models.CharField(max_length=200, help_text="file name")
+#     file_source = models.CharField(max_length=200, help_text="file name")
 
-    def cond(self):
-        return str(self.measure_temperature) + ' °C, Storage: ' + self.storage_condtion + ', SLV%: ' + str(self.SLV_condtion) + '% , Jar test seal: ' + str(self.JarTestSeal)
+#     def cond(self):
+#         return str(self.measure_temperature) + ' °C, Storage: ' + self.storage_condtion + ', SLV%: ' + str(self.SLV_condtion) + '% , Jar test seal: ' + str(self.JarTestSeal)
 
-    def value_remark(self):
-        return ''
-
-
-class LowTemperatrueOperation(models.Model):
-    name = 'LTO'
-    LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
-                    null=True, blank=True)
-    PI = ForeignKey(Polyimide, on_delete=models.RESTRICT,
-                    null=True, blank=True)
-    seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
-
-    storage_condtion = models.CharField(
-        max_length=10,
-        default='Test Cell',
-    )
-
-    SLV_condtion = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True)
-    JarTestSeal = ForeignKey(
-        Seal, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
-    measure_temperature = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True)
-
-    value = models.CharField(
-        max_length=10,
-        choices=(
-            ('OK', 'OK'),
-            ('NG', 'NG')
-        ),
-        null=True,
-    )
-    unit = ''
-    vendor = ForeignKey(Vendor, on_delete=models.RESTRICT, null=True)
-
-    file_source = models.CharField(max_length=200, help_text="file name")
-
-    def cond(self):
-        return str(self.measure_temperature) + ' °C, Storage: ' + self.storage_condtion + ', SLV%: ' + str(self.SLV_condtion) + '% , Jar test seal: ' + str(self.JarTestSeal)
-
-    def value_remark(self):
-        return ''
+#     def value_remark(self):
+#         return ''
 
 
-class ACIS(models.Model):
-    name = 'AC IS'
-    LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
-                    null=True, blank=True)
-    PI = ForeignKey(Polyimide, on_delete=models.RESTRICT,
-                    null=True, blank=True)
-    seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
+# class LowTemperatrueOperation(models.Model):
+#     name = 'LTO'
+#     LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
+#                     null=True, blank=True)
+#     PI = ForeignKey(Polyimide, on_delete=models.RESTRICT,
+#                     null=True, blank=True)
+#     seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
 
-    device = CharField(max_length=20, null=True,
-                       blank=True, default='2211 Test Cell')
-    value = models.DecimalField(max_digits=4, decimal_places=2, null=True)
-    unit = '%'
-    vendor = ForeignKey(Vendor, on_delete=models.RESTRICT, null=True)
+#     storage_condtion = models.CharField(
+#         max_length=10,
+#         default='Test Cell',
+#     )
 
-    file_source = models.CharField(max_length=200, help_text="file name")
+#     SLV_condtion = models.DecimalField(
+#         max_digits=5, decimal_places=2, null=True)
+#     JarTestSeal = ForeignKey(
+#         Seal, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+#     measure_temperature = models.DecimalField(
+#         max_digits=5, decimal_places=2, null=True)
 
-    def cond(self):
-        return 'device: ' + str(self.device)
+#     value = models.CharField(
+#         max_length=10,
+#         choices=(
+#             ('OK', 'OK'),
+#             ('NG', 'NG')
+#         ),
+#         null=True,
+#     )
+#     unit = ''
+#     vender = ForeignKey(Vender, on_delete=models.RESTRICT, null=True)
 
-    def value_remark(self):
-        return ''
+#     file_source = models.CharField(max_length=200, help_text="file name")
+
+#     def cond(self):
+#         return str(self.measure_temperature) + ' °C, Storage: ' + self.storage_condtion + ', SLV%: ' + str(self.SLV_condtion) + '% , Jar test seal: ' + str(self.JarTestSeal)
+
+#     def value_remark(self):
+#         return ''
+
+
+# class ACIS(models.Model):
+#     name = 'AC IS'
+#     LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
+#                     null=True, blank=True)
+#     PI = ForeignKey(Polyimide, on_delete=models.RESTRICT,
+#                     null=True, blank=True)
+#     seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
+
+#     device = CharField(max_length=20, null=True,
+#                        blank=True, default='2211 Test Cell')
+#     value = models.DecimalField(max_digits=4, decimal_places=2, null=True)
+#     unit = '%'
+#     vender = ForeignKey(Vender, on_delete=models.RESTRICT, null=True)
+
+#     file_source = models.CharField(max_length=200, help_text="file name")
+
+#     def cond(self):
+#         return 'device: ' + str(self.device)
+
+#     def value_remark(self):
+#         return ''
