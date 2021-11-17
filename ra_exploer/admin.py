@@ -2,8 +2,8 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import File, LiquidCrystal, Polyimide, Seal, Vender
-from .models import Adhesion
+from .models import VHR, DeltaAngle, File, LiquidCrystal, LowTemperatrueStorage, Polyimide, Seal, Vender
+from .models import Adhesion, LowTemperatrueOperation
 # from .models import VHR, DeltaAngle, Adhesion
 # from .models import LowTemperatrueOperation, LowTemperatrueStorage, ACIS
 
@@ -30,7 +30,37 @@ class TemplateItemAdmin(admin.ModelAdmin):
 
 # admin.site.register(VHR, VHRAdmin)
 
+
 class AdhesionAdmin(admin.ModelAdmin):
     list_display = ('LC', 'PI', 'seal', 'value')
 
+
 admin.site.register(Adhesion, AdhesionAdmin)
+
+
+class LTOAdmin(admin.ModelAdmin):
+    list_display = ('LC', 'PI', 'seal', 'value')
+
+
+admin.site.register(LowTemperatrueOperation, LTOAdmin)
+
+
+class LTSAdmin(admin.ModelAdmin):
+    list_display = ('LC', 'PI', 'seal', 'value')
+
+
+admin.site.register(LowTemperatrueStorage, LTSAdmin)
+
+
+class DeltaAngleAdmin(admin.ModelAdmin):
+    list_display = ('LC', 'PI', 'seal', 'value')
+
+
+admin.site.register(DeltaAngle, DeltaAngleAdmin)
+
+
+class VHRAdmin(admin.ModelAdmin):
+    list_display = ('LC', 'PI', 'seal', 'value')
+
+
+admin.site.register(VHR, VHRAdmin)

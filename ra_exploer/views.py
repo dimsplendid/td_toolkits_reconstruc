@@ -10,8 +10,8 @@ from openpyxl.reader.excel import load_workbook
 # Create your views here.
 
 from .forms import SearchFrom, UploadFileForm
-from .models import LiquidCrystal, Polyimide, Seal, Vender, File
-from .models import Adhesion
+from .models import VHR, DeltaAngle, LiquidCrystal, LowTemperatrueOperation, Polyimide, Seal, Vender, File
+from .models import Adhesion, LowTemperatrueStorage
 
 
 class index(TemplateView):
@@ -32,19 +32,19 @@ def index(request):
     seals = Seal.objects.all()
 
     form = SearchFrom
-    adhesion_form = UploadFileForm
+    file_form = UploadFileForm
     # Render the HTML template index.html with the data in the context variable
     return render(
-        request, 
-        'index.html', 
+        request,
+        'index.html',
         context=(
             {
-                'form': form, 
-                'query': query, 
-                'LCs': LCs, 
-                'PIs': PIs, 
+                'form': form,
+                'query': query,
+                'LCs': LCs,
+                'PIs': PIs,
                 'seals': seals,
-                'adhesion_form': adhesion_form,
+                'file_form': file_form,
             }
         )
     )
@@ -53,42 +53,15 @@ def index(request):
 def query_table(query, model, writer):
     results = model.objects.all()
     print(query)
+    # Todo
     if 'ALL' in query['LC']:
-        if 'ALL' in query['PI']:
-            if 'ALL' in query['Seal']:
-                results = model.objects.all()
-            else:
-                results = model.objects.filter(
-                    seal__name__in=query['Seal'])
-        elif 'ALL' in query['Seal']:
-            results = model.objects.filter(
-                PI__name__in=query['PI'])
-        else:
-            results = model.objects.filter(
-                PI__name__in=query['PI'], seal__name__in=query['Seal'])
-    elif 'ALL' in query['PI']:
-        if 'ALL' in query['LC']:
-            results = model.objects.filter(
-                seal__name__in=query['Seal'])
-        elif 'ALL' in query['Seal']:
-            results = model.objects.filter(
-                LC__name__in=query['LC'])
-        else:
-            results = model.objects.filter(
-                LC__name__in=query['LC'], seal__name__in=query['Seal'])
-    elif 'ALL' in query['Seal']:
-        if 'ALL' in query['PI']:
-            results = model.objects.filter(
-                LC__name__in=query['LC'])
-        elif 'ALL' in query['LC']:
-            results = model.objects.filter(
-                PI__name__in=query['PI'])
-        else:
-            results = model.objects.filter(
-                PI__name__in=query['PI'], LC__name__in=query['LC'])
-    else:
-        results = model.objects.filter(
-            LC__name__in=query['LC'], PI__name__in=query['PI'], seal__name__in=query['Seal'])
+        query['LC'] = list(LiquidCrystal.objects.all())
+    if 'ALL' in query['PI']:
+        query['PI'] = list(Polyimide.objects.all())
+    if 'ALL' in query['LC']:
+        query['Seal'] = list(Seal.objects.all())
+    results = model.objects.filter(
+        LC__name__in=query['LC'], PI__name__in=query['PI'], seal__name__in=query['Seal'])
 
     for result in results:
 
@@ -137,11 +110,12 @@ def export_results_csv(request):
             # query_table(query, VHR, writer)
             # query_table(query, DeltaAngle, writer)
             query_table(query, Adhesion, writer)
-            # query_table(query, LowTemperatrueOperation, writer)
-            # query_table(query, LowTemperatrueStorage, writer)
+            query_table(query, LowTemperatrueOperation, writer)
+            query_table(query, LowTemperatrueStorage, writer)
             # query_table(query, ACIS, writer)
 
             return response
+
 
 def import_adhesion(request):
     if request.method == 'POST':
@@ -149,9 +123,10 @@ def import_adhesion(request):
 
         if form.is_valid():
             # print('valid!')
-            ws = load_workbook(filename=request.FILES['file'].file).worksheets[0]
-            header = True # using for skip header, it should have a nicer method?
-            
+            ws = load_workbook(
+                filename=request.FILES['file'].file).worksheets[0]
+            header = True  # using for skip header, it should have a nicer method?
+
             for row in ws.values:
                 if header:
                     header = False
@@ -162,8 +137,123 @@ def import_adhesion(request):
                 vender, _ = Vender.objects.get_or_create(name=row[8])
                 file, _ = File.objects.get_or_create(name=row[9])
                 if not Adhesion.objects.filter(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file, adhesion_interface=row[5], method=row[6]).exists():
-                    Adhesion.objects.create(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file, adhesion_interface=row[5], method=row[6], value=row[4], peeling=row[7])
+                    Adhesion.objects.create(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
+                                            adhesion_interface=row[5], method=row[6], value=row[4], peeling=row[7])
             return redirect(reverse('index'))
 
         else:
-            return HttpResponseBadRequest()      
+            return HttpResponseBadRequest()
+
+
+def import_LTO(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            print('valid!')
+            ws = load_workbook(
+                filename=request.FILES['file'].file).worksheets[0]
+
+            header = True  # using for skip header, it should have a nicer method?
+            for row in ws.values:
+                if header:
+                    header = False
+                    continue
+                LC, _ = LiquidCrystal.objects.get_or_create(name=row[1])
+                PI, _ = Polyimide.objects.get_or_create(name=row[2])
+                seal, _ = Seal.objects.get_or_create(name=row[3])
+                vender, _ = Vender.objects.get_or_create(name=row[9])
+                file, _ = File.objects.get_or_create(name=row[10])
+                JarTestSeal, _ = Seal.objects.get_or_create(name=row[7])
+                if not LowTemperatrueOperation.objects.filter(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file, storage_condition=row[5], SLV_condition=row[6], JarTestSeal=JarTestSeal, measure_temperature=row[8]).exists():
+                    LowTemperatrueOperation.objects.create(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
+                                                           storage_condition=row[5], SLV_condition=row[6], JarTestSeal=JarTestSeal, measure_temperature=row[8], value=row[4])
+            return redirect(reverse('index'))
+
+        else:
+            return HttpResponseBadRequest()
+
+
+def import_LTS(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            print('valid!')
+            ws = load_workbook(
+                filename=request.FILES['file'].file).worksheets[0]
+
+            header = True  # using for skip header, it should have a nicer method?
+            for row in ws.values:
+                if header:
+                    header = False
+                    continue
+                LC, _ = LiquidCrystal.objects.get_or_create(name=row[1])
+                PI, _ = Polyimide.objects.get_or_create(name=row[2])
+                seal, _ = Seal.objects.get_or_create(name=row[3])
+                vender, _ = Vender.objects.get_or_create(name=row[9])
+                file, _ = File.objects.get_or_create(name=row[10])
+                JarTestSeal, _ = Seal.objects.get_or_create(name=row[7])
+                if not LowTemperatrueStorage.objects.filter(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file, storage_condition=row[5], SLV_condition=row[6], JarTestSeal=JarTestSeal, measure_temperature=row[8]).exists():
+                    LowTemperatrueStorage.objects.create(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
+                                                         storage_condition=row[5], SLV_condition=row[6], JarTestSeal=JarTestSeal, measure_temperature=row[8], value=row[4])
+            return redirect(reverse('index'))
+
+        else:
+            return HttpResponseBadRequest()
+
+
+def import_DeltaAngle(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            print('valid!')
+            ws = load_workbook(
+                filename=request.FILES['file'].file).worksheets[0]
+
+            header = True  # using for skip header, it should have a nicer method?
+            for row in ws.values:
+                if header:
+                    header = False
+                    continue
+                LC, _ = LiquidCrystal.objects.get_or_create(name=row[1])
+                PI, _ = Polyimide.objects.get_or_create(name=row[2])
+                seal, _ = Seal.objects.get_or_create(name=row[3])
+                vender, _ = Vender.objects.get_or_create(name=row[9])
+                file, _ = File.objects.get_or_create(name=row[10])
+                if not DeltaAngle.objects.filter(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file, measure_voltage=row[5], measure_freq=row[6], measure_time=row[7], measure_temperature=row[8]).exists():
+                    DeltaAngle.objects.create(value=row[4], LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
+                                              measure_voltage=row[5], measure_freq=row[6], measure_time=row[7], measure_temperature=row[8])
+            return redirect(reverse('index'))
+
+        else:
+            return HttpResponseBadRequest()
+
+
+def import_VHR(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            print('valid!')
+            ws = load_workbook(
+                filename=request.FILES['file'].file).worksheets[0]
+
+            header = True  # using for skip header, it should have a nicer method?
+            for row in ws.values:
+                if header:
+                    header = False
+                    continue
+                LC, _ = LiquidCrystal.objects.get_or_create(name=row[1])
+                PI, _ = Polyimide.objects.get_or_create(name=row[2])
+                seal, _ = Seal.objects.get_or_create(name=row[3])
+                vender, _ = Vender.objects.get_or_create(name=row[9])
+                file, _ = File.objects.get_or_create(name=row[10])
+                if not VHR.objects.filter(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file, measure_voltage=row[5], measure_freq=row[6], measure_temperature=row[7], UV_aging=row[8]).exists():
+                    VHR.objects.create(value=row[4], LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
+                                       measure_voltage=row[5], measure_freq=row[6], measure_temperature=row[7], UV_aging=row[8])
+            return redirect(reverse('index'))
+
+        else:
+            return HttpResponseBadRequest()

@@ -9,11 +9,11 @@
 <form method="post" action="{% url 'export_results_csv' %}">
     {% csrf_token %}
     <table>
-        <thead style="text-align:center">
+        <thead style="text-align: center">
             <tr>
-                <th>LC </th>
-                <th>PI </th>
-                <th>seal </th>
+                <th>LC</th>
+                <th>PI</th>
+                <th>seal</th>
             </tr>
         </thead>
         <tbody>
@@ -47,14 +47,61 @@
     </table>
     <input class="btn-dark" type="submit" value="Search" />
 </form>
-<form action="{% url 'import_adhesion' %}" enctype="multipart/form-data" method="post">
-    {% csrf_token %}
-    {{ adhesion_form.as_table }}
-    <input type="submit" value="Adhesion Raw">
-</form>
-{% if adhesion_form.errors %}
-    <p style="color: red;">
-        Please correct the error{{ adhesion_form.errors|pluralize }} below.
-    </p>
+<hr />
+{% if file_form.errors %}
+<p style="color: red">
+    Please correct the error{{ file_form.errors|pluralize }} below.
+</p>
 {% endif %}
+<form
+    action="{% url 'import_adhesion' %}"
+    enctype="multipart/form-data"
+    method="post"
+>
+    {% csrf_token %}
+    <label>Adhesion</label>
+    {{ file_form.as_table }}
+    <input type="submit" value="submit" />
+</form>
+
+<form
+    action="{% url 'import_lto' %}"
+    enctype="multipart/form-data"
+    method="post"
+>
+    {% csrf_token %}
+    <label>LTO</label>
+    {{ file_form.as_table }}
+    <input type="submit" value="submit" />
+</form>
+<form
+    action="{% url 'import_lts' %}"
+    enctype="multipart/form-data"
+    method="post"
+>
+    {% csrf_token %}
+    <label>LTS</label>
+    {{ file_form.as_table }}
+    <input type="submit" value="submit" />
+</form>
+<form
+    action="{% url 'import_deltaAngle' %}"
+    enctype="multipart/form-data"
+    method="post"
+>
+    {% csrf_token %}
+    <label>Δangle</label>
+    {{ file_form.as_table }}
+    <input type="submit" value="submit" />
+</form>
+<form
+    action="{% url 'import_vhr' %}"
+    enctype="multipart/form-data"
+    method="post"
+>
+    {% csrf_token %}
+    <label>VHR</label>
+    {{ file_form.as_table }}
+    <input type="submit" value="submit" />
+</form>
 {% endblock %}
