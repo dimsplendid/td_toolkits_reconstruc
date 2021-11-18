@@ -61,7 +61,8 @@ def query_table(query, model, writer):
     if 'ALL' in query['Seal']:
         query['Seal'] = Seal.objects.all().values_list('name')
     results = model.objects.filter(
-        LC__name__in=query['LC'], PI__name__in=query['PI'], seal__name__in=query['Seal'])
+        LC__name__in=query['LC'], PI__name__in=query['PI'], seal__name__in=query['Seal']
+    )
 
     for result in results:
 
