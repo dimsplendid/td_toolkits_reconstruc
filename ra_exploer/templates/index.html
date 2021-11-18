@@ -48,6 +48,9 @@
     <input class="btn-dark" type="submit" value="Search" />
 </form>
 <hr />
+<h2>
+Upload Data
+</h2>
 {% if file_form.errors %}
 <p style="color: red">
     Please correct the error{{ file_form.errors|pluralize }} below.
@@ -72,7 +75,7 @@
     {% csrf_token %}
     <label>LTO</label>
     {{ file_form.as_table }}
-    <input type="submit" value="submit" />
+    <input type="submit" value="submit"/>
 </form>
 <form
     action="{% url 'import_lts' %}"

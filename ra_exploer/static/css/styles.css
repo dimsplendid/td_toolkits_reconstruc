@@ -109,3 +109,8 @@ main.col-9 div {
     color: rgba(255, 255, 255, 0.774);
     font-size: 12px;
 }
+
+/* form  { display: table;}
+p     {display: table-row;}
+label {display: table-cell;}
+input {display: table-cell;} */

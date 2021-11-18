@@ -10,3 +10,11 @@ from django.db import models
 
 
 # Create your models here.
+class AXO(models.Model):
+    pass
+
+class Condtion(models.Model):
+    pass
+
+class Opt():
+    pass

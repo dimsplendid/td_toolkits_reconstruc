@@ -116,7 +116,7 @@ def export_results_csv(request):
             # query_table(query, ACIS, writer)
 
             return response
-
+    return redirect(reverse('index'))
 
 def import_adhesion(request):
     if request.method == 'POST':
@@ -144,8 +144,7 @@ def import_adhesion(request):
 
         else:
             return HttpResponseBadRequest()
-
-
+    return redirect(reverse('index'))
 def import_LTO(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
@@ -173,7 +172,7 @@ def import_LTO(request):
 
         else:
             return HttpResponseBadRequest()
-
+    return redirect(reverse('index'))
 
 def import_LTS(request):
     if request.method == 'POST':
@@ -202,7 +201,7 @@ def import_LTS(request):
 
         else:
             return HttpResponseBadRequest()
-
+    return redirect(reverse('index'))
 
 def import_DeltaAngle(request):
     if request.method == 'POST':
@@ -230,7 +229,7 @@ def import_DeltaAngle(request):
 
         else:
             return HttpResponseBadRequest()
-
+    return redirect(reverse('index'))
 
 def import_VHR(request):
     if request.method == 'POST':
@@ -258,3 +257,4 @@ def import_VHR(request):
 
         else:
             return HttpResponseBadRequest()
+    return redirect(reverse('index'))
