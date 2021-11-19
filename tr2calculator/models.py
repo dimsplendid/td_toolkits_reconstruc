@@ -10,11 +10,13 @@ from django.db import models
 
 
 # Create your models here.
-class AXO(models.Model):
+class AxomatricsLog(models.Model):
     pass
 
-class Condtion(models.Model):
+
+class Condition(models.Model):
     pass
 
-class Opt():
+
+class OpticsLog(models.Model):
     pass

@@ -3,6 +3,7 @@ from django.db.models.deletion import SET_NULL
 from django.db.models.fields import CharField
 from django.db.models.fields.related import ForeignKey
 
+
 # Create your models here.
 
 
@@ -10,6 +11,7 @@ class LiquidCrystal(models.Model):
     """Model record LC"""
     name = models.CharField(max_length=20, unique=True,
                             help_text='Enter a LC name')
+    vender = ForeignKey('Vender', on_delete=models.RESTRICT, null=True, blank=True)
 
     class META:
         ordering = ['name']
@@ -88,19 +90,21 @@ class VHR(models.Model):
     measure_temperature = models.DecimalField(
         max_digits=5, decimal_places=2, default=60)
     value = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+
     unit = '%'
     vender = ForeignKey(Vender, on_delete=models.RESTRICT, null=True)
     file_source = ForeignKey(File, on_delete=models.RESTRICT)
 
     def cond(self):
-        return self.UV_aging + ', V: ' + str(self.measure_voltage) + ' volt, freq: ' + str(self.measure_freq) + ' Hz, Temperature: ' + str(self.measure_temperature) + ' °C'
+        return self.UV_aging + ', V: ' + str(self.measure_voltage) + ' volt, freq: ' + str(
+            self.measure_freq) + ' Hz, Temperature: ' + str(self.measure_temperature) + ' °C'
 
     def value_remark(self):
         return ''
 
 
 class DeltaAngle(models.Model):
-    name = 'Δangle'
+    name = 'Δ angle'
     LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
                     null=True, blank=True)
     PI = ForeignKey(Polyimide, on_delete=models.RESTRICT,
@@ -120,7 +124,8 @@ class DeltaAngle(models.Model):
     file_source = ForeignKey(File, on_delete=models.RESTRICT)
 
     def cond(self):
-        return str(self.measure_time) + ' hr, Vp-p: ' + str(self.measure_voltage) + ' volt, freq: ' + str(self.measure_freq) + ' Hz, Temperatrue: ' + str(self.measure_temperature) + ' °C'
+        return str(self.measure_time) + ' hr, Vp-p: ' + str(self.measure_voltage) + ' volt, freq: ' + str(
+            self.measure_freq) + ' Hz, Temperature: ' + str(self.measure_temperature) + ' °C'
 
     def value_remark(self):
         return ''
@@ -153,7 +158,7 @@ class Adhesion(models.Model):
         return 'Peeling surface: ' + str(self.peeling)
 
 
-class LowTemperatrueStorage(models.Model):
+class LowTemperatureStorage(models.Model):
     name = 'LTS'
     LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
                     null=True, blank=True)
@@ -183,13 +188,14 @@ class LowTemperatrueStorage(models.Model):
     file_source = ForeignKey(File, on_delete=models.RESTRICT)
 
     def cond(self):
-        return str(self.measure_temperature) + ' °C, Storage: ' + self.storage_condition + ', SLV%: ' + str(self.SLV_condition) + '% , Jar test seal: ' + str(self.JarTestSeal)
+        return str(self.measure_temperature) + ' °C, Storage: ' + self.storage_condition + ', SLV%: ' + str(
+            self.SLV_condition) + '% , Jar test seal: ' + str(self.JarTestSeal)
 
     def value_remark(self):
         return ''
 
 
-class LowTemperatrueOperation(models.Model):
+class LowTemperatureOperation(models.Model):
     name = 'LTO'
     LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
                     null=True, blank=True)
@@ -224,11 +230,11 @@ class LowTemperatrueOperation(models.Model):
     file_source = ForeignKey(File, on_delete=models.RESTRICT)
 
     def cond(self):
-        return str(self.measure_temperature) + ' °C, Storage: ' + self.storage_condition + ', SLV%: ' + str(self.SLV_condition * 100) + '% , Jar test seal: ' + str(self.JarTestSeal)
+        return str(self.measure_temperature) + ' °C, Storage: ' + str(self.storage_condition) + ', SLV%: ' + str(
+            self.SLV_condition * 100.) + '% , Jar test seal: ' + str(self.JarTestSeal)
 
     def value_remark(self):
         return ''
-
 
 # class ACIS(models.Model):
 #     name = 'AC IS'
