@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Add our new application
     'tr2calculator.apps.Tr2CalculatorConfig',
-    'ra_exploer.apps.RaExploerConfig'
+    'ra_exploer.apps.RaExploerConfig',
+    'fontawesomefree',
 ]
 
 MIDDLEWARE = [

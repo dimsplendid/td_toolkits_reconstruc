@@ -169,10 +169,11 @@ def import_LTO(request):
                                                               storage_condition=row[5], SLV_condition=row[6],
                                                               JarTestSeal=JarTestSeal,
                                                               measure_temperature=row[8]).exists():
+                    
                     LowTemperatureOperation.objects.create(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
                                                            storage_condition=row[5], SLV_condition=row[6],
                                                            JarTestSeal=JarTestSeal, measure_temperature=row[8],
-                                                           value=row[4])
+                                                           value=LowTemperatureOperation.value_mapping[row[4]])
             return redirect(reverse('index'))
 
         else:

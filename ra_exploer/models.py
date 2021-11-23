@@ -189,7 +189,7 @@ class LowTemperatureStorage(models.Model):
 
     def cond(self):
         return str(self.measure_temperature) + ' °C, Storage: ' + self.storage_condition + ', SLV%: ' + str(
-            self.SLV_condition) + '% , Jar test seal: ' + str(self.JarTestSeal)
+            float(self.SLV_condition or 0) * 100.) + '% , Jar test seal: ' + str(self.JarTestSeal)
 
     def value_remark(self):
         return ''
@@ -215,13 +215,14 @@ class LowTemperatureOperation(models.Model):
     measure_temperature = models.DecimalField(
         max_digits=5, decimal_places=2, null=True)
 
-    value = models.CharField(
-        max_length=10,
-        choices=(
-            ('Pass', 'Pass'),
-            ('NG', 'NG'),
-            ('N.A.', 'N.A.')
-        ),
+    class Value(models.IntegerChoices):
+        NA = -1, "N.A."    
+        NG = 0, "NG"
+        PASS = 1, "Pass"
+
+    value_mapping = {i.label: i.value for i in Value}
+    value = models.IntegerField(
+        choices=Value.choices,
         null=True,
     )
     unit = ''
@@ -231,7 +232,7 @@ class LowTemperatureOperation(models.Model):
 
     def cond(self):
         return str(self.measure_temperature) + ' °C, Storage: ' + str(self.storage_condition) + ', SLV%: ' + str(
-            self.SLV_condition * 100.) + '% , Jar test seal: ' + str(self.JarTestSeal)
+            float(self.SLV_condition or 0) * 100.)  + '% , Jar test seal: ' + str(self.JarTestSeal)
 
     def value_remark(self):
         return ''
