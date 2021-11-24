@@ -258,3 +258,13 @@ class LowTemperatureOperation(models.Model):
 
 #     def value_remark(self):
 #         return ''
+
+class Validator(models.Model):
+    date = models.DateField()
+    vhr = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2,
+        help_text="Cut for greater than.",
+        verbose_name="VHR"
+    )
+
