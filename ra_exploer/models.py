@@ -11,7 +11,8 @@ class LiquidCrystal(models.Model):
     """Model record LC"""
     name = models.CharField(max_length=20, unique=True,
                             help_text='Enter a LC name')
-    vender = ForeignKey('Vender', on_delete=models.RESTRICT, null=True, blank=True)
+    vender = ForeignKey('Vender', on_delete=models.RESTRICT,
+                        null=True, blank=True)
 
     class META:
         ordering = ['name']
@@ -72,7 +73,7 @@ class Validator(models.Model):
         unique=True,
     )
     value = models.DecimalField(
-        max_digits=5, 
+        max_digits=5,
         decimal_places=2,
         default=0.00,
     )
@@ -80,12 +81,7 @@ class Validator(models.Model):
     def __str__(self):
         return str(self.value)
 
-def valid_id_map(name):
-    items = {
-        'VHR(heat)': 1,
-    }
-    return items[name]
- 
+
 class VHR(models.Model):
     name = 'VHR(heat)'
     LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
@@ -117,8 +113,6 @@ class VHR(models.Model):
     vender = ForeignKey(Vender, on_delete=models.RESTRICT, null=True)
     file_source = ForeignKey(File, on_delete=models.RESTRICT)
 
-    valid_value = ForeignKey(Validator, on_delete=models.RESTRICT, default=valid_id_map(name))
-    
     def cond(self):
         return self.UV_aging + ', V: ' + str(self.measure_voltage) + ' volt, freq: ' + str(
             self.measure_freq) + ' Hz, Temperature: ' + str(self.measure_temperature) + ' °C'
@@ -240,7 +234,7 @@ class LowTemperatureOperation(models.Model):
         max_digits=5, decimal_places=2, null=True)
 
     class Value(models.IntegerChoices):
-        NA = -1, "N.A."    
+        NA = -1, "N.A."
         NG = 0, "NG"
         PASS = 1, "Pass"
 
@@ -256,7 +250,7 @@ class LowTemperatureOperation(models.Model):
 
     def cond(self):
         return str(self.measure_temperature) + ' °C, Storage: ' + str(self.storage_condition) + ', SLV%: ' + str(
-            float(self.SLV_condition or 0) * 100.)  + '% , Jar test seal: ' + str(self.JarTestSeal)
+            float(self.SLV_condition or 0) * 100.) + '% , Jar test seal: ' + str(self.JarTestSeal)
 
     def value_remark(self):
         return ''

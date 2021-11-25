@@ -60,11 +60,14 @@ admin.site.register(DeltaAngle, DeltaAngleAdmin)
 
 
 class VHRAdmin(admin.ModelAdmin):
-    list_display = ('LC', 'PI', 'seal', 'value', 'valid_value')
+    list_display = ('LC', 'PI', 'seal', 'value')
 
 
 admin.site.register(VHR, VHRAdmin)
 
+
 class ValidatorAdmin(admin.ModelAdmin):
     list_display = ('name', 'value')
+
+
 admin.site.register(Validator, ValidatorAdmin)

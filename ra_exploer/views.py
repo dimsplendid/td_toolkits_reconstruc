@@ -1,3 +1,5 @@
+from django.views.generic.edit import UpdateView
+from django.forms.models import model_to_dict
 from django.http.response import HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls.base import reverse
@@ -29,6 +31,12 @@ def index(request):
 
     form = SearchFrom
     file_form = UploadFileForm
+    valid_adhesion = Validator.objects.get(name='adhesion test')
+    valid_LTO = Validator.objects.get(name='LTO')
+    valid_LTS = Validator.objects.get(name='LTS')
+    valid_delta_angle = Validator.objects.get(name='Δ angle')
+    valid_VHR = Validator.objects.get(name='VHR(heat)')
+
     # Render the HTML template index.html with the data in the context variable
     return render(
         request,
@@ -41,10 +49,14 @@ def index(request):
                 'PIs': PIs,
                 'seals': seals,
                 'file_form': file_form,
+                'valid_adhesion': valid_adhesion,
+                'valid_LTO': valid_LTO,
+                'valid_LTS': valid_LTS,
+                'valid_delta_angle': valid_delta_angle,
+                'valid_VHR': valid_VHR,
             }
         )
     )
-
 
 
 def import_adhesion(request):
@@ -101,7 +113,7 @@ def import_LTO(request):
                                                               storage_condition=row[5], SLV_condition=row[6],
                                                               JarTestSeal=JarTestSeal,
                                                               measure_temperature=row[8]).exists():
-                    
+
                     LowTemperatureOperation.objects.create(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
                                                            storage_condition=row[5], SLV_condition=row[6],
                                                            JarTestSeal=JarTestSeal, measure_temperature=row[8],
@@ -211,26 +223,31 @@ def import_VHR(request):
             return HttpResponseBadRequest()
     return redirect(reverse('index'))
 
-from .models import valid_id_map
 
 def query_table(query, model, writer, valid=True, cmp='gt'):
-    
-    valid_val = Validator.objects.get(id=valid_id_map(model.name))
-    
-    if cmp == 'gt':    
-        if 'ALL' in query['LC']:
-            query['LC'] = LiquidCrystal.objects.all().values_list('name')
-        if 'ALL' in query['PI']:
-            query['PI'] = Polyimide.objects.all().values_list('name')
-        if 'ALL' in query['Seal']:
-            query['Seal'] = Seal.objects.all().values_list('name')
+
+    valid_val = Validator.objects.get_or_create(name=model.name)[0].value
+
+    if 'ALL' in query['LC']:
+        query['LC'] = LiquidCrystal.objects.all().values_list('name')
+    if 'ALL' in query['PI']:
+        query['PI'] = Polyimide.objects.all().values_list('name')
+    if 'ALL' in query['Seal']:
+        query['Seal'] = Seal.objects.all().values_list('name')
+    if cmp == 'gt':
         results = model.objects.filter(
-            LC__name__in=query['LC'], 
-            PI__name__in=query['PI'], 
+            LC__name__in=query['LC'],
+            PI__name__in=query['PI'],
             seal__name__in=query['Seal'],
             value__gt=valid_val,
         )
-    
+    elif cmp == 'lt':
+        results = model.objects.filter(
+            LC__name__in=query['LC'],
+            PI__name__in=query['PI'],
+            seal__name__in=query['Seal'],
+            value__lt=valid_val,
+        )
 
     for result in results:
 
@@ -244,7 +261,11 @@ def query_table(query, model, writer, valid=True, cmp='gt'):
         if not (result.seal is None):
             row[3] = result.seal.name
         if not (result.value is None):
-            row[4] = result.value
+            if model.name == 'LTO':
+                value = result.get_value_display()
+            else:
+                value = result.value
+            row[4] = value
         if not (result.unit is None):
             row[5] = result.unit
         if not (result.value_remark is None):
@@ -258,6 +279,7 @@ def query_table(query, model, writer, valid=True, cmp='gt'):
 
         writer.writerow(row)
     print('query finished')
+
 
 def export_results_csv(request):
     if request.method == 'POST':
@@ -276,11 +298,22 @@ def export_results_csv(request):
 
             # need fixed?
             query_table(query, VHR, writer)
-            # query_table(query, DeltaAngle, writer)
-            # query_table(query, Adhesion, writer)
-            # query_table(query, LowTemperatureOperation, writer)
-            # query_table(query, LowTemperatureStorage, writer)
+            query_table(query, DeltaAngle, writer, cmp='lt')
+            query_table(query, Adhesion, writer)
+            query_table(query, LowTemperatureOperation, writer)
+            query_table(query, LowTemperatureStorage, writer)
             # query_table(query, AC_IS, writer)
 
             return response
     return redirect(reverse('index'))
+
+
+class ValidatorUpdateView(UpdateView):
+    template_name = 'validator_update.html'
+    template_name_suffix = 'update'
+    model = Validator
+    slug_field = 'name'
+    fields = ['value']
+
+    def get_success_url(self):
+        return reverse('index')

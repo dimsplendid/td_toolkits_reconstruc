@@ -10,5 +10,7 @@ urlpatterns = [
     path('import/lowTemperatureOperation', views.import_LTO, name='import_lto'),
     path('import/lowTemperatureStorage', views.import_LTS, name='import_lts'),
     path('import/deltaAngle', views.import_DeltaAngle, name='import_deltaAngle'),
-    path('import/vhr', views.import_VHR, name='import_vhr')
+    path('import/vhr', views.import_VHR, name='import_vhr'),
+    path('validator/<str:slug>/update/',
+         views.ValidatorUpdateView.as_view(), name='valid-update')
 ]

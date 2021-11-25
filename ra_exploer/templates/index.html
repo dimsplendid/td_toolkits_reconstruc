@@ -47,10 +47,54 @@
     </table>
     <input class="btn-dark" type="submit" value="Search" />
 </form>
+<br />
+<h3>Valid Value</h3>
+<p>(Greater than)</p>
+<table class="table text-center">
+    <thead>
+        <tr>
+            <th>Adhision(kgw)</th>
+            <th>LTO(NG/PASS)</th>
+            <th>LTS(days)</th>
+            <th>Δangle(°)</th>
+            <th>VHR(%)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{ valid_adhesion.value }}</td>
+            <td>PASS</td>
+            <td>{{ valid_LTS.value }}</td>
+            <td>{{ valid_delta_angle.value }}</td>
+            <td>{{ valid_VHR.value }}</td>
+        </tr>
+        <tr>
+            <td>
+                <a class="btn" href="{% url 'valid-update' 'adhesion test' %}"
+                    >update</a
+                >
+            </td>
+            <td>
+                <a class="btn" href="{% url 'valid-update' 'LTO' %}">update</a>
+            </td>
+            <td>
+                <a class="btn" href="{% url 'valid-update' 'LTS' %}">update</a>
+            </td>
+            <td>
+                <a class="btn" href="{% url 'valid-update' 'Δ angle' %}"
+                    >update</a
+                >
+            </td>
+            <td>
+                <a class="btn" href="{% url 'valid-update' 'VHR(heat)' %}"
+                    >update</a
+                >
+            </td>
+        </tr>
+    </tbody>
+</table>
 <hr />
-<h2>
-Upload Data
-</h2>
+<h2>Upload Data</h2>
 {% if file_form.errors %}
 <p style="color: red">
     Please correct the error{{ file_form.errors|pluralize }} below.
@@ -75,7 +119,7 @@ Upload Data
     {% csrf_token %}
     <label>LTO</label>
     {{ file_form.as_table }}
-    <input type="submit" value="submit"/>
+    <input type="submit" value="submit" />
 </form>
 <form
     action="{% url 'import_lts' %}"
