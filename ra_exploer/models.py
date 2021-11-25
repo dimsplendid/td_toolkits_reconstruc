@@ -64,6 +64,28 @@ class File(models.Model):
         return self.name
 
 
+class Validator(models.Model):
+    # date = models.DateField()
+    name = models.CharField(
+        max_length=20,
+        default='FOO',
+        unique=True,
+    )
+    value = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2,
+        default=0.00,
+    )
+
+    def __str__(self):
+        return str(self.value)
+
+def valid_id_map(name):
+    items = {
+        'VHR(heat)': 1,
+    }
+    return items[name]
+ 
 class VHR(models.Model):
     name = 'VHR(heat)'
     LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
@@ -95,6 +117,8 @@ class VHR(models.Model):
     vender = ForeignKey(Vender, on_delete=models.RESTRICT, null=True)
     file_source = ForeignKey(File, on_delete=models.RESTRICT)
 
+    valid_value = ForeignKey(Validator, on_delete=models.RESTRICT, default=valid_id_map(name))
+    
     def cond(self):
         return self.UV_aging + ', V: ' + str(self.measure_voltage) + ' volt, freq: ' + str(
             self.measure_freq) + ' Hz, Temperature: ' + str(self.measure_temperature) + ' °C'
@@ -258,13 +282,3 @@ class LowTemperatureOperation(models.Model):
 
 #     def value_remark(self):
 #         return ''
-
-class Validator(models.Model):
-    date = models.DateField()
-    vhr = models.DecimalField(
-        max_digits=5, 
-        decimal_places=2,
-        help_text="Cut for greater than.",
-        verbose_name="VHR"
-    )
-

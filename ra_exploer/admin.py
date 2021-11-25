@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import VHR, DeltaAngle, File, LiquidCrystal, LowTemperatureStorage, Polyimide, Seal, Vender
+from .models import VHR, DeltaAngle, File, LiquidCrystal, LowTemperatureStorage, Polyimide, Seal, Validator, Vender
 from .models import Adhesion, LowTemperatureOperation
 # from .models import VHR, DeltaAngle, Adhesion
 # from .models import LowTemperatrueOperation, LowTemperatrueStorage, ACIS
@@ -60,7 +60,11 @@ admin.site.register(DeltaAngle, DeltaAngleAdmin)
 
 
 class VHRAdmin(admin.ModelAdmin):
-    list_display = ('LC', 'PI', 'seal', 'value')
+    list_display = ('LC', 'PI', 'seal', 'value', 'valid_value')
 
 
 admin.site.register(VHR, VHRAdmin)
+
+class ValidatorAdmin(admin.ModelAdmin):
+    list_display = ('name', 'value')
+admin.site.register(Validator, ValidatorAdmin)

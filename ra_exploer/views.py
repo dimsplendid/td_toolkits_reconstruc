@@ -10,7 +10,7 @@ from openpyxl.reader.excel import load_workbook
 # Create your views here.
 
 from .forms import SearchFrom, UploadFileForm
-from .models import VHR, DeltaAngle, LiquidCrystal, LowTemperatureOperation, Polyimide, Seal, Vender, File
+from .models import VHR, DeltaAngle, LiquidCrystal, LowTemperatureOperation, Polyimide, Seal, Validator, Vender, File
 from .models import Adhesion, LowTemperatureStorage
 
 
@@ -45,74 +45,6 @@ def index(request):
         )
     )
 
-
-def query_table(query, model, writer):
-    results = model.objects.all()
-    print(query)
-    # Todo
-    if 'ALL' in query['LC']:
-        query['LC'] = LiquidCrystal.objects.all().values_list('name')
-    if 'ALL' in query['PI']:
-        query['PI'] = Polyimide.objects.all().values_list('name')
-    if 'ALL' in query['Seal']:
-        query['Seal'] = Seal.objects.all().values_list('name')
-    results = model.objects.filter(
-        LC__name__in=query['LC'], PI__name__in=query['PI'], seal__name__in=query['Seal']
-    )
-
-    for result in results:
-
-        row = ['N.A.'] * 10
-        if not (result.name is None):
-            row[0] = result.name
-        if not (result.LC is None):
-            row[1] = result.LC.name
-        if not (result.PI is None):
-            row[2] = result.PI.name
-        if not (result.seal is None):
-            row[3] = result.seal.name
-        if not (result.value is None):
-            row[4] = result.value
-        if not (result.unit is None):
-            row[5] = result.unit
-        if not (result.value_remark is None):
-            row[6] = result.value_remark()
-        if not (result.vender is None):
-            row[7] = result.vender.name
-        if not (result.cond is None):
-            row[8] = result.cond()
-        if not (result.file_source is None):
-            row[9] = result.file_source.name
-
-        writer.writerow(row)
-    print('query finished')
-
-
-def export_results_csv(request):
-    if request.method == 'POST':
-        form = SearchFrom(request.POST)
-        if form.is_valid():
-            query = {
-                'LC': form.cleaned_data['LC'],
-                'PI': form.cleaned_data['PI'],
-                'Seal': form.cleaned_data['Seal'],
-            }
-            response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-            response['Content-Disposition'] = 'attachment; filename="results.csv"'
-            writer = csv.writer(response)
-            writer.writerow(['Item', 'LC', 'PI', 'Seal',
-                             'Value', 'Unit', 'Value Remark', 'Vendor', 'Condition', 'file'])
-
-            # need fixed?
-            query_table(query, VHR, writer)
-            query_table(query, DeltaAngle, writer)
-            query_table(query, Adhesion, writer)
-            query_table(query, LowTemperatureOperation, writer)
-            query_table(query, LowTemperatureStorage, writer)
-            # query_table(query, AC_IS, writer)
-
-            return response
-    return redirect(reverse('index'))
 
 
 def import_adhesion(request):
@@ -277,4 +209,78 @@ def import_VHR(request):
 
         else:
             return HttpResponseBadRequest()
+    return redirect(reverse('index'))
+
+from .models import valid_id_map
+
+def query_table(query, model, writer, valid=True, cmp='gt'):
+    
+    valid_val = Validator.objects.get(id=valid_id_map(model.name))
+    
+    if cmp == 'gt':    
+        if 'ALL' in query['LC']:
+            query['LC'] = LiquidCrystal.objects.all().values_list('name')
+        if 'ALL' in query['PI']:
+            query['PI'] = Polyimide.objects.all().values_list('name')
+        if 'ALL' in query['Seal']:
+            query['Seal'] = Seal.objects.all().values_list('name')
+        results = model.objects.filter(
+            LC__name__in=query['LC'], 
+            PI__name__in=query['PI'], 
+            seal__name__in=query['Seal'],
+            value__gt=valid_val,
+        )
+    
+
+    for result in results:
+
+        row = ['N.A.'] * 10
+        if not (result.name is None):
+            row[0] = result.name
+        if not (result.LC is None):
+            row[1] = result.LC.name
+        if not (result.PI is None):
+            row[2] = result.PI.name
+        if not (result.seal is None):
+            row[3] = result.seal.name
+        if not (result.value is None):
+            row[4] = result.value
+        if not (result.unit is None):
+            row[5] = result.unit
+        if not (result.value_remark is None):
+            row[6] = result.value_remark()
+        if not (result.vender is None):
+            row[7] = result.vender.name
+        if not (result.cond is None):
+            row[8] = result.cond()
+        if not (result.file_source is None):
+            row[9] = result.file_source.name
+
+        writer.writerow(row)
+    print('query finished')
+
+def export_results_csv(request):
+    if request.method == 'POST':
+        form = SearchFrom(request.POST)
+        if form.is_valid():
+            query = {
+                'LC': form.cleaned_data['LC'],
+                'PI': form.cleaned_data['PI'],
+                'Seal': form.cleaned_data['Seal'],
+            }
+            response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+            response['Content-Disposition'] = 'attachment; filename="results.csv"'
+            writer = csv.writer(response)
+            writer.writerow(['Item', 'LC', 'PI', 'Seal',
+                             'Value', 'Unit', 'Value Remark', 'Vendor', 'Condition', 'file'])
+
+            # need fixed?
+            query_table(query, VHR, writer)
+            # query_table(query, DeltaAngle, writer)
+            # query_table(query, Adhesion, writer)
+            # query_table(query, LowTemperatureOperation, writer)
+            # query_table(query, LowTemperatureStorage, writer)
+            # query_table(query, AC_IS, writer)
+
+            return response
     return redirect(reverse('index'))
