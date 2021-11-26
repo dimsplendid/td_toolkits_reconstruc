@@ -42,52 +42,54 @@
                         {% endfor %}
                     </select>
                 </td>
+                <td>
+                    <input class="btn btn-dark m-3" type="submit" value="Search" />
+                </td>
             </tr>
         </tbody>
     </table>
-    <input class="btn-dark" type="submit" value="Search" />
 </form>
 <br />
 <h3>Valid Value</h3>
 <table class="table text-center">
     <thead>
         <tr>
-            <th>Adhision(kgw)</th>
-            <th>LTO(NG/PASS)</th>
+            <th>Adhesion(kgw)</th>
             <th>LTS(days)</th>
             <th>Δangle(°)</th>
             <th>VHR(%)</th>
+            <th>LTO(低溫黑屏)</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td>{{ valid_adhesion.value }}</td>
+            <td> > {{ valid_adhesion.value }}</td>
+            <td> > {{ valid_LTS.value }}</td>
+            <td> < {{ valid_delta_angle.value }}</td>
+            <td> > {{ valid_VHR.value }}</td>
             <td>PASS</td>
-            <td>{{ valid_LTS.value }}</td>
-            <td>{{ valid_delta_angle.value }}</td>
-            <td>{{ valid_VHR.value }}</td>
         </tr>
         <tr>
             <td>
-                <a class="btn" href="{% url 'valid-update' 'adhesion test' %}"
+                <a class="btn btn-dark" href="{% url 'valid-update' 'adhesion test' %}"
                     >update</a
                 >
             </td>
             <td>
-                <a class="btn" href="{% url 'valid-update' 'LTO' %}">update</a>
+                <a class="btn btn-dark" href="{% url 'valid-update' 'LTS' %}">update</a>
             </td>
             <td>
-                <a class="btn" href="{% url 'valid-update' 'LTS' %}">update</a>
-            </td>
-            <td>
-                <a class="btn" href="{% url 'valid-update' 'Δ angle' %}"
+                <a class="btn btn-dark" href="{% url 'valid-update' 'Δ angle' %}"
                     >update</a
                 >
             </td>
             <td>
-                <a class="btn" href="{% url 'valid-update' 'VHR(heat)' %}"
+                <a class="btn btn-dark" href="{% url 'valid-update' 'VHR(heat)' %}"
                     >update</a
                 >
+            </td>
+            <td>
+                
             </td>
         </tr>
     </tbody>
@@ -150,4 +152,5 @@
     {{ file_form.as_table }}
     <input type="submit" value="submit" />
 </form>
+
 {% endblock %}

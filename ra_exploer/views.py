@@ -317,3 +317,21 @@ class ValidatorUpdateView(UpdateView):
 
     def get_success_url(self):
         return reverse('index')
+
+from plotly.offline import plot
+import plotly.graph_objects as go
+
+def test(request):
+    x_data = [0, 1, 2, 3]
+    y_data = [x**2 for x in x_data]
+    plot_div = plot(
+        [go.Scatter(
+            x=x_data, y=y_data,
+            mode='lines',
+            name='test',
+            opacity=0.8,
+            marker_color='green'
+        )],
+        output_type='div'
+    )
+    return render(request, 'test.html', context={'plot_div': plot_div})
