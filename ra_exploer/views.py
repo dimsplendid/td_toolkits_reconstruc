@@ -1,3 +1,7 @@
+import plotly.express as px
+import pandas as pd
+from plotly.offline import plot
+import plotly.graph_objects as go
 from django.views.generic.edit import UpdateView
 from django.forms.models import model_to_dict
 from django.http.response import HttpResponseBadRequest, HttpResponseRedirect
@@ -318,20 +322,29 @@ class ValidatorUpdateView(UpdateView):
     def get_success_url(self):
         return reverse('index')
 
-from plotly.offline import plot
-import plotly.graph_objects as go
 
 def test(request):
-    x_data = [0, 1, 2, 3]
-    y_data = [x**2 for x in x_data]
-    plot_div = plot(
-        [go.Scatter(
-            x=x_data, y=y_data,
-            mode='lines',
-            name='test',
-            opacity=0.8,
-            marker_color='green'
-        )],
-        output_type='div'
-    )
+    VHR_query = VHR.objects.filter(
+        value__gt=50).order_by('vender__name', '-value')
+    x_data = []
+    y_data = []
+    vender = []
+    for row in VHR_query:
+        x_data += [f'{row.LC.name} {row.PI.name} {row.seal.name}']
+        vender += [row.vender.name]
+        y_data += [float(row.value)]
+        # print(f'{row.value}\t{row.LC.name} {row.PI.name} {row.seal.name}')
+
+    df = pd.DataFrame({
+        'cond': x_data,
+        'VHR(%)': y_data,
+        'vender': vender,
+    })
+
+    df_mean = df.groupby(by=['vender', 'cond'], as_index=False).mean()
+
+    fig = px.bar(df_mean, x='cond', y='VHR(%)',
+                 color='vender', barmode='group')
+    plot_div = plot(fig, output_type='div')
+
     return render(request, 'test.html', context={'plot_div': plot_div})
