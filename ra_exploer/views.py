@@ -1,3 +1,4 @@
+from io import BytesIO
 import plotly.express as px
 import pandas as pd
 from plotly.offline import plot
@@ -322,6 +323,7 @@ class ValidatorUpdateView(UpdateView):
     def get_success_url(self):
         return reverse('index')
 
+
 def filter(query, model, cmp='gt'):
 
     valid_val = Validator.objects.get_or_create(name=model.name)[0].value
@@ -348,6 +350,7 @@ def filter(query, model, cmp='gt'):
         )
     return results
 
+
 def filtedResultView(request):
     if request.method == 'POST':
         form = SearchFrom(request.POST)
@@ -360,7 +363,6 @@ def filtedResultView(request):
             vhr_query = filter(query, VHR)
         pass
 
-    
     return redirect()
 
 
@@ -387,5 +389,23 @@ def test(request):
     fig = px.bar(df_mean, x='cond', y='VHR(%)',
                  color='vender', barmode='group')
     plot_div = plot(fig, output_type='div')
+    request.session['df'] = df.to_json()
 
     return render(request, 'test.html', context={'plot_div': plot_div})
+
+
+def test_download(request):
+    df = pd.read_json(request.session['df'])
+    with BytesIO() as b:
+        # Use the StringIO object as the filehandle.
+        writer = pd.ExcelWriter(b, engine='xlsxwriter')
+        df.to_excel(writer, sheet_name='Sheet1')
+        writer.save()
+        # Set up the Http response.
+        filename = 'django_simple.xlsx'
+        response = HttpResponse(
+            b.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        return response
