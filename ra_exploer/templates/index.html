@@ -58,6 +58,8 @@
             <th>LTS(days)</th>
             <th>Δangle(°)</th>
             <th>VHR(%)</th>
+            <th>PCT</th>
+            <th>Seal WVTR</th>
             <th>LTO(低溫黑屏)</th>
         </tr>
     </thead>
@@ -67,6 +69,8 @@
             <td> > {{ valid_LTS.value }}</td>
             <td> < {{ valid_delta_angle.value }}</td>
             <td> > {{ valid_VHR.value }}</td>
+            <td> TBD </td>
+            <td> TBD </td>
             <td>PASS</td>
         </tr>
         <tr>
@@ -85,6 +89,16 @@
             </td>
             <td>
                 <a class="btn btn-dark" href="{% url 'valid-update' 'VHR(heat)' %}"
+                    >update</a
+                >
+            </td>
+            <td>
+                <a class="btn btn-dark" href=""
+                    >update</a
+                >
+            </td>
+            <td>
+                <a class="btn btn-dark" href=""
                     >update</a
                 >
             </td>

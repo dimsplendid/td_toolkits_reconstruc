@@ -322,6 +322,47 @@ class ValidatorUpdateView(UpdateView):
     def get_success_url(self):
         return reverse('index')
 
+def filter(query, model, cmp='gt'):
+
+    valid_val = Validator.objects.get_or_create(name=model.name)[0].value
+
+    if 'ALL' in query['LC']:
+        query['LC'] = LiquidCrystal.objects.all().values_list('name')
+    if 'ALL' in query['PI']:
+        query['PI'] = Polyimide.objects.all().values_list('name')
+    if 'ALL' in query['Seal']:
+        query['Seal'] = Seal.objects.all().values_list('name')
+    if cmp == 'gt':
+        results = model.objects.filter(
+            LC__name__in=query['LC'],
+            PI__name__in=query['PI'],
+            seal__name__in=query['Seal'],
+            value__gt=valid_val,
+        )
+    elif cmp == 'lt':
+        results = model.objects.filter(
+            LC__name__in=query['LC'],
+            PI__name__in=query['PI'],
+            seal__name__in=query['Seal'],
+            value__lt=valid_val,
+        )
+    return results
+
+def filtedResultView(request):
+    if request.method == 'POST':
+        form = SearchFrom(request.POST)
+        if form.is_valid():
+            query = {
+                'LC': form.cleaned_data['LC'],
+                'PI': form.cleaned_data['PI'],
+                'Seal': form.cleaned_data['Seal'],
+            }
+            vhr_query = filter(query, VHR)
+        pass
+
+    
+    return redirect()
+
 
 def test(request):
     VHR_query = VHR.objects.filter(
