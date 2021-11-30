@@ -1,18 +1,12 @@
 from io import BytesIO
-from django.http import response
-from numpy import mod
 import plotly.express as px
 import pandas as pd
 from plotly.offline import plot
-import plotly.graph_objects as go
 from django.views.generic.edit import UpdateView
-from django.forms.models import model_to_dict
 from django.http.response import HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls.base import reverse
-from django.views.generic import TemplateView
 from django.http import HttpResponse
-from itertools import chain
 import csv
 from openpyxl.reader.excel import load_workbook
 
@@ -32,9 +26,9 @@ def index(request):
         'Seal': [x[0] for x in Seal.objects.all().values_list('name')],
     }
 
-    LCs = LiquidCrystal.objects.all()
-    PIs = Polyimide.objects.all()
-    seals = Seal.objects.all()
+    LCs = LiquidCrystal.objects.all().order_by('name')
+    PIs = Polyimide.objects.all().order_by('name')
+    seals = Seal.objects.all().order_by('name')
 
     form = SearchFrom
     file_form = UploadFileForm
@@ -380,7 +374,7 @@ def filterQuery(query, model, cmp='gt'):
     for item in result:
         value_remark += [item.value_remark()]
         condition += [item.cond()]
-    if len(result_df.columns==5):
+    if len(result_df.columns) == 6:
         result_df.insert(4, 'condition', condition)
         result_df.insert(4, 'value remark', value_remark)
         result_df.insert(0, 'item', model.name)
