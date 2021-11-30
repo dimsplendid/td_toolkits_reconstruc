@@ -224,10 +224,12 @@ def import_VHR(request):
             return HttpResponseBadRequest()
     return redirect(reverse('index'))
 
+
 def import_PCT(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILE)
     pass
+
 
 def query_table(query, model, writer, valid=True, cmp='gt'):
 
@@ -318,7 +320,7 @@ class ValidatorUpdateView(UpdateView):
     template_name_suffix = 'update'
     model = Validator
     slug_field = 'name'
-    fields = ['value']
+    fields = ['value', 'venders']
 
     def get_success_url(self):
         return reverse('index')
@@ -380,16 +382,19 @@ def filterQuery(query, model, cmp='gt'):
         result_df.insert(0, 'item', model.name)
         result_df = result_df.astype({'value': float})
 
-        result_mean_df = result_df.groupby(by=['LC', 'PI', 'Seal', 'Vender'], as_index=False).mean().sort_values(by=['value'], ascending=False)
-        result_mean_df['configuration'] = result_mean_df['LC'] + ' ' + result_mean_df['PI'] + ' ' + result_mean_df['Seal']
+        result_mean_df = result_df.groupby(by=['LC', 'PI', 'Seal', 'Vender'], as_index=False).mean(
+        ).sort_values(by=['value'], ascending=False)
+        result_mean_df['configuration'] = result_mean_df['LC'] + \
+            ' ' + result_mean_df['PI'] + ' ' + result_mean_df['Seal']
         if model.name == 'LTO':
             values = []
             for item in result:
                 values += [item.get_value_display()]
             result_df['value'] = values
         return result_df, result_mean_df
-    
+
     return pd.DataFrame(), pd.DataFrame()
+
 
 def filteredResultView(request):
     if request.method == 'POST':
@@ -405,10 +410,10 @@ def filteredResultView(request):
             plot_vhr = None
             if len(vhr_mean_df) > 0:
                 vhr_fig = px.bar(
-                    vhr_mean_df, 
-                    x='configuration', 
-                    y='value', 
-                    color='Vender', 
+                    vhr_mean_df,
+                    x='configuration',
+                    y='value',
+                    color='Vender',
                     barmode='group',
                     labels={
                         'value': 'VHR(%)'
@@ -416,16 +421,16 @@ def filteredResultView(request):
                 )
                 plot_vhr = plot(vhr_fig, output_type='div')
             request.session['vhr_df'] = vhr_df.to_json()
-            
+
             # adhesion
             adhesion_df, adhesion_mean_df = filterQuery(query, Adhesion)
             plot_adhesion = None
             if len(adhesion_mean_df) > 0:
                 adhesion_fig = px.bar(
-                    adhesion_mean_df, 
-                    x='configuration', 
-                    y='value', 
-                    color='Vender', 
+                    adhesion_mean_df,
+                    x='configuration',
+                    y='value',
+                    color='Vender',
                     barmode='group',
                     labels={
                         'value': 'adhesion(kgw)'
@@ -433,16 +438,16 @@ def filteredResultView(request):
                 )
                 plot_adhesion = plot(adhesion_fig, output_type='div')
             request.session['adhesion_df'] = adhesion_df.to_json()
-            
+
             # lts
             lts_df, lts_mean_df = filterQuery(query, LowTemperatureStorage)
             plot_lts = None
             if len(lts_mean_df) > 0:
                 lts_fig = px.bar(
-                    lts_mean_df, 
-                    x='configuration', 
-                    y='value', 
-                    color='Vender', 
+                    lts_mean_df,
+                    x='configuration',
+                    y='value',
+                    color='Vender',
                     barmode='group',
                     labels={
                         'value': 'LTS (days)'
@@ -450,14 +455,14 @@ def filteredResultView(request):
                 )
                 plot_lts = plot(lts_fig, output_type='div')
             request.session['lts_df'] = lts_df.to_json()
-            
+
             # lto
             lto_df, _ = filterQuery(query, LowTemperatureOperation)
             # lto_fig = px.bar(
-            #     lto_mean_df, 
-            #     x='configuration', 
-            #     y='value', 
-            #     color='Vender', 
+            #     lto_mean_df,
+            #     x='configuration',
+            #     y='value',
+            #     color='Vender',
             #     barmode='group',
             #     labels={
             #         'value': 'lto(kgw)'
@@ -467,13 +472,14 @@ def filteredResultView(request):
             request.session['lto_df'] = lto_df.to_json()
             # delta_angle
             plot_delta_angle = None
-            delta_angle_df, delta_angle_mean_df = filterQuery(query, DeltaAngle, 'lt')
+            delta_angle_df, delta_angle_mean_df = filterQuery(
+                query, DeltaAngle, 'lt')
             if len(delta_angle_mean_df) > 0:
                 delta_angle_fig = px.bar(
-                    delta_angle_mean_df, 
-                    x='configuration', 
-                    y='value', 
-                    color='Vender', 
+                    delta_angle_mean_df,
+                    x='configuration',
+                    y='value',
+                    color='Vender',
                     barmode='group',
                     labels={
                         'value': 'Δ angle(°)'
@@ -481,7 +487,7 @@ def filteredResultView(request):
                 )
                 plot_delta_angle = plot(delta_angle_fig, output_type='div')
             request.session['delta_angle_df'] = delta_angle_df.to_json()
-          
+
             context = {
                 'plot_vhr': plot_vhr,
                 'plot_adhesion': plot_adhesion,
@@ -493,6 +499,7 @@ def filteredResultView(request):
             return render(request, 'filteredResult.html', context=context)
     return redirect(reverse('index'))
 
+
 def xlsx_export(request):
     df = pd.DataFrame()
     vhr_df = pd.read_json(request.session['vhr_df'])
@@ -501,11 +508,10 @@ def xlsx_export(request):
     lto_df = pd.read_json(request.session['lto_df'])
     delta_angle_df = pd.read_json(request.session['delta_angle_df'])
 
-    
     df = pd.concat(
         [
-            df, 
-            vhr_df, 
+            df,
+            vhr_df,
             adhesion_df,
             lts_df,
             lto_df,

@@ -54,6 +54,7 @@
 <table class="table text-center">
     <thead>
         <tr>
+            <th></th>
             <th>Adhesion(kgw)</th>
             <th>LTS(days)</th>
             <th>Δangle(°)</th>
@@ -65,46 +66,51 @@
     </thead>
     <tbody>
         <tr>
-            <td> > {{ valid_adhesion.value }}</td>
-            <td> > {{ valid_LTS.value }}</td>
-            <td> < {{ valid_delta_angle.value }}</td>
-            <td> > {{ valid_VHR.value }}</td>
-            <td> TBD </td>
-            <td> TBD </td>
+            <th>Limit</th>
+            <td>> {{ valid_adhesion.value }}</td>
+            <td>> {{ valid_LTS.value }}</td>
+            <td>
+                < {{ valid_delta_angle.value }}</td> <td>> {{ valid_VHR.value }}
+            </td>
+            <td>TBD</td>
+            <td>TBD</td>
             <td>PASS</td>
         </tr>
         <tr>
+            <th>Venders</th>
             <td>
-                <a class="btn btn-dark" href="{% url 'valid-update' 'adhesion test' %}"
-                    >update</a
-                >
+                {% for vender in valid_adhesion.venders.values %}
+                {{ vender.name }}
+                {% endfor %}
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <th>Actions</th>
+            <td>
+                <a class="btn btn-dark" href="{% url 'valid-update' 'adhesion test' %}">update</a>
             </td>
             <td>
                 <a class="btn btn-dark" href="{% url 'valid-update' 'LTS' %}">update</a>
             </td>
             <td>
-                <a class="btn btn-dark" href="{% url 'valid-update' 'Δ angle' %}"
-                    >update</a
-                >
+                <a class="btn btn-dark" href="{% url 'valid-update' 'Δ angle' %}">update</a>
             </td>
             <td>
-                <a class="btn btn-dark" href="{% url 'valid-update' 'VHR(heat)' %}"
-                    >update</a
-                >
+                <a class="btn btn-dark" href="{% url 'valid-update' 'VHR(heat)' %}">update</a>
             </td>
             <td>
-                <a class="btn btn-dark" href=""
-                    >update</a
-                >
+                <a class="btn btn-dark" href="">update</a>
             </td>
             <td>
-                <a class="btn btn-dark" href=""
-                    >update</a
-                >
+                <a class="btn btn-dark" href="">update</a>
             </td>
-            <td>
-                
-            </td>
+            <td></td>
         </tr>
     </tbody>
 </table>
@@ -115,52 +121,32 @@
     Please correct the error{{ file_form.errors|pluralize }} below.
 </p>
 {% endif %}
-<form
-    action="{% url 'import_adhesion' %}"
-    enctype="multipart/form-data"
-    method="post"
->
+<form action="{% url 'import_adhesion' %}" enctype="multipart/form-data" method="post">
     {% csrf_token %}
     <label>Adhesion</label>
     {{ file_form.as_table }}
     <input type="submit" value="submit" />
 </form>
 
-<form
-    action="{% url 'import_lto' %}"
-    enctype="multipart/form-data"
-    method="post"
->
+<form action="{% url 'import_lto' %}" enctype="multipart/form-data" method="post">
     {% csrf_token %}
     <label>LTO</label>
     {{ file_form.as_table }}
     <input type="submit" value="submit" />
 </form>
-<form
-    action="{% url 'import_lts' %}"
-    enctype="multipart/form-data"
-    method="post"
->
+<form action="{% url 'import_lts' %}" enctype="multipart/form-data" method="post">
     {% csrf_token %}
     <label>LTS</label>
     {{ file_form.as_table }}
     <input type="submit" value="submit" />
 </form>
-<form
-    action="{% url 'import_deltaAngle' %}"
-    enctype="multipart/form-data"
-    method="post"
->
+<form action="{% url 'import_deltaAngle' %}" enctype="multipart/form-data" method="post">
     {% csrf_token %}
     <label>Δangle</label>
     {{ file_form.as_table }}
     <input type="submit" value="submit" />
 </form>
-<form
-    action="{% url 'import_vhr' %}"
-    enctype="multipart/form-data"
-    method="post"
->
+<form action="{% url 'import_vhr' %}" enctype="multipart/form-data" method="post">
     {% csrf_token %}
     <label>VHR</label>
     {{ file_form.as_table }}

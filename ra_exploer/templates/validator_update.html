@@ -1,4 +1,5 @@
 {% extends "base_generic.html" %} {% block content %}
+<h2>{{ validator.name }} update</h2>
 <form method="post">
     {% csrf_token %} {{ form.as_p }}
     <input class="btn-dark" type="submit" value="Update" />

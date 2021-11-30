@@ -77,6 +77,7 @@ class Validator(models.Model):
         decimal_places=2,
         default=0.00,
     )
+    venders = models.ManyToManyField(Vender)
 
     def __str__(self):
         return str(self.value)
@@ -277,28 +278,28 @@ class LowTemperatureOperation(models.Model):
 #     def value_remark(self):
 #         return ''
 
-class PressureCookingTest(models.Model):
-    name='PCT'
-    LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
-                    null=True, blank=True)
-    PI = ForeignKey(Polyimide, on_delete=models.RESTRICT,
-                    null=True, blank=True)
-    seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
-    value = models.IntegerField()
-    unit = 'hours'
-    measure_condition = models.CharField(
-        max_length=40,
-        help_text="measure condition"
-    )
-    test_vehical = models.CharField(
-        max_length=40,
-        help_text='test vehicle'
-    )
-    vender = ForeignKey(Vender, on_delete=models.RESTRICT, null=True)
-    file_source = ForeignKey(File, on_delete=models.RESTRICT)
-    
-    def cond(self):
-        return "measure conditions: " + str(self.measure_condition) + ", test vehicle: " + str(self.test_vehical)
+# class PressureCookingTest(models.Model):
+#     name='PCT'
+#     LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
+#                     null=True, blank=True)
+#     PI = ForeignKey(Polyimide, on_delete=models.RESTRICT,
+#                     null=True, blank=True)
+#     seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
+#     value = models.IntegerField()
+#     unit = 'hours'
+#     measure_condition = models.CharField(
+#         max_length=40,
+#         help_text="measure condition"
+#     )
+#     test_vehical = models.CharField(
+#         max_length=40,
+#         help_text='test vehicle'
+#     )
+#     vender = ForeignKey(Vender, on_delete=models.RESTRICT, null=True)
+#     file_source = ForeignKey(File, on_delete=models.RESTRICT)
 
-    def value_remark(self):
-        return ''
+#     def cond(self):
+#         return "measure conditions: " + str(self.measure_condition) + ", test vehicle: " + str(self.test_vehical)
+
+#     def value_remark(self):
+#         return ''
