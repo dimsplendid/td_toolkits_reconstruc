@@ -1,5 +1,6 @@
 {% extends "base_generic.html" %} {% block content %}
 <h2>Filtered Result</h2>
+<a class="btn btn-dark" href="{% url 'filtered-result-download'%}">raw download</a>
 <div>
     {{ plot_adhesion|safe }}
 </div>
@@ -12,8 +13,8 @@
 <div>
     {{ plot_vhr|safe }}
 </div>
-<div>
+<!-- <div>
     {{ plot_lto|safe }}
-</div>
+</div> -->
 
 {% endblock %}

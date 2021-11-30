@@ -6,7 +6,7 @@
     <input type="submit" value="Search" />
 </form>
 <p>test</p> -->
-<form method="post" action="{% url 'export_results_csv' %}">
+<form method="post" action="{% url 'filtered-result' %}">
     {% csrf_token %}
     <table>
         <thead style="text-align: center">

@@ -13,6 +13,8 @@ urlpatterns = [
     path('import/vhr', views.import_VHR, name='import_vhr'),
     path('validator/<str:slug>/update/',
          views.ValidatorUpdateView.as_view(), name='valid-update'),
+    path('query/filteredResult/', views.filteredResultView, name='filtered-result'),
+    path('query/filteredResult/download/', views.xlsx_export, name='filtered-result-download'),
     path('test/', views.test, name='test'),
-    path('test/download', views.test_download, name='test-download'),
+    path('test/download/', views.test_download, name='test-download'),
 ]
