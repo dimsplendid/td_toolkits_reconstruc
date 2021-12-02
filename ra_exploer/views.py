@@ -327,8 +327,9 @@ class ValidatorUpdateView(UpdateView):
 
 
 def filterQuery(query, model, cmp='gt'):
-
-    valid_val = Validator.objects.get_or_create(name=model.name)[0].value
+    validator = Validator.objects.get_or_create(name=model.name)
+    valid_val = validator[0].value
+    valid_venders = validator[0].venders.all()
 
     if 'ALL' in query['LC']:
         query['LC'] = LiquidCrystal.objects.all().values_list('name')
@@ -342,6 +343,7 @@ def filterQuery(query, model, cmp='gt'):
             PI__name__in=query['PI'],
             seal__name__in=query['Seal'],
             value__gt=valid_val,
+            vender__in=valid_venders,
         ).order_by('vender__name', '-value')
     elif cmp == 'lt':
         result = model.objects.filter(
@@ -349,6 +351,7 @@ def filterQuery(query, model, cmp='gt'):
             PI__name__in=query['PI'],
             seal__name__in=query['Seal'],
             value__lt=valid_val,
+            vender__in=valid_venders,
         ).order_by('vender__name', 'value')
     else:
         result = model.objects.all()
@@ -522,7 +525,7 @@ def xlsx_export(request):
     with BytesIO() as b:
         # Use the StringIO object as the filehandle
         writer = pd.ExcelWriter(b, engine='xlsxwriter')
-        df.to_excel(writer, sheet_name='result')
+        df.to_excel(writer, sheet_name='result', index=False)
         writer.save()
         # Set up the HTTP response
         filename = 'Result.xlsx'

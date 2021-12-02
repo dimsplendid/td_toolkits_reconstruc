@@ -1,6 +1,8 @@
-{% extends "base_generic.html" %} {% block content %}
-<h1>RA Explorer</h1>
-<hr />
+{% extends "base_generic.html" %}
+{% block navbar %}
+. <strong>RA Explorer</strong>
+{% endblock %}
+{% block content %}
 <!-- <form method="post" action="{% url 'export_results_csv' %}">
     {% csrf_token %} {{ form.as_table }}
     <input type="submit" value="Search" />
@@ -19,24 +21,27 @@
         <tbody>
             <tr>
                 <td>
-                    <select multiple name="LC">
-                        <option>ALL</option>
+                    <select class="multiselect" multiple="multiple" name="LC">
+                        <option selected>ALL</option>
+                        <option selected>N.A.</option>
                         {% for LC in LCs %}
                         <option>{{ LC.name }}</option>
                         {% endfor %}
                     </select>
                 </td>
                 <td>
-                    <select multiple name="PI">
-                        <option>ALL</option>
+                    <select class="multiselect" multiple name="PI">
+                        <option selected>ALL</option>
+                        <option selected>N.A.</option>
                         {% for PI in PIs %}
                         <option>{{ PI.name }}</option>
                         {% endfor %}
                     </select>
                 </td>
                 <td>
-                    <select multiple name="Seal">
-                        <option>ALL</option>
+                    <select class="multiselect" multiple name="Seal">
+                        <option selected>ALL</option>
+                        <option selected>N.A.</option>
                         {% for seal in seals %}
                         <option>{{ seal.name }}</option>
                         {% endfor %}
@@ -50,8 +55,8 @@
     </table>
 </form>
 <br />
-<h3>Valid Value</h3>
-<table class="table text-center">
+<h4>Valid Value</h4>
+<table class="table text-center table-responsive small">
     <thead>
         <tr>
             <th></th>
@@ -61,7 +66,7 @@
             <th>VHR(%)</th>
             <th>PCT</th>
             <th>Seal WVTR</th>
-            <th>LTO(低溫黑屏)</th>
+            <th>LTO (低溫黑屏)</th>
         </tr>
     </thead>
     <tbody>
@@ -74,7 +79,7 @@
             </td>
             <td>TBD</td>
             <td>TBD</td>
-            <td>PASS</td>
+            <td> PASS </td>
         </tr>
         <tr>
             <th>Venders</th>
@@ -83,12 +88,28 @@
                 {{ vender.name }}
                 {% endfor %}
             </td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td>
+                {% for vender in valid_LTS.venders.values %}
+                {{ vender.name }}
+                {% endfor %}
+            </td>
+            <td>
+                {% for vender in valid_delta_angle.venders.values %}
+                {{ vender.name }}
+                {% endfor %}
+            </td>
+            <td>
+                {% for vender in valid_VHR.venders.values %}
+                {{ vender.name }}
+                {% endfor %}
+            </td>
+            <td>TBD</td>
+            <td>TBD</td>
+            <td>
+                {% for vender in valid_LTO.venders.values %}
+                {{ vender.name }}
+                {% endfor %}
+            </td>
         </tr>
         <tr>
             <th>Actions</th>
@@ -115,7 +136,7 @@
     </tbody>
 </table>
 <hr />
-<h2>Upload Data</h2>
+<h4>Upload Data</h4>
 {% if file_form.errors %}
 <p style="color: red">
     Please correct the error{{ file_form.errors|pluralize }} below.
