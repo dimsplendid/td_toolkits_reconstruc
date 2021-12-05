@@ -1,6 +1,10 @@
-{% extends "base_generic.html" %} {% block content %}
-<h2>{{ validator.name }} update</h2>
-<form method="post">
+{% extends "base_generic.html" %}
+{% block navbar %}
+. <a class="navbar-brand me-0" href="{% url 'index' %}">RA Explorer</a>
+. <strong>{{ validator.name }} Update</strong>
+{% endblock %}
+{% block content %}
+<form class='form-select' method="post">
     {% csrf_token %} {{ form.as_p }}
     <input class="btn-dark" type="submit" value="Update" />
 </form>

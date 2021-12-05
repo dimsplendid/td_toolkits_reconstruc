@@ -1,0 +1,31 @@
+{
+  "name": "td_toolkits_reconstruc",
+  "version": "1.0.0",
+  "description": "TD toolkits frontend part",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "webpack --mode development --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dimsplendid/td_toolkits_reconstruc.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dimsplendid/td_toolkits_reconstruc/issues"
+  },
+  "homepage": "https://github.com/dimsplendid/td_toolkits_reconstruc#readme",
+  "devDependencies": {
+    "webpack": "^5.64.4",
+    "webpack-cli": "^4.9.1"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
+  }
+}

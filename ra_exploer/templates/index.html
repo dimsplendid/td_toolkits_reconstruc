@@ -21,27 +21,27 @@
         <tbody>
             <tr>
                 <td>
-                    <select class="multiselect" multiple="multiple" name="LC">
+                    <select class="form-select" multiple="multiple" name="LC">
                         <option selected>ALL</option>
-                        <option selected>N.A.</option>
+                        {% comment %} <option selected>N.A.</option> {% endcomment %}
                         {% for LC in LCs %}
                         <option>{{ LC.name }}</option>
                         {% endfor %}
                     </select>
                 </td>
                 <td>
-                    <select class="multiselect" multiple name="PI">
+                    <select class="form-select" multiple name="PI">
                         <option selected>ALL</option>
-                        <option selected>N.A.</option>
+                        {% comment %} <option selected>N.A.</option> {% endcomment %}
                         {% for PI in PIs %}
                         <option>{{ PI.name }}</option>
                         {% endfor %}
                     </select>
                 </td>
                 <td>
-                    <select class="multiselect" multiple name="Seal">
+                    <select class="form-select" multiple name="Seal">
                         <option selected>ALL</option>
-                        <option selected>N.A.</option>
+                        {% comment %} <option selected>N.A.</option> {% endcomment %}
                         {% for seal in seals %}
                         <option>{{ seal.name }}</option>
                         {% endfor %}
@@ -131,7 +131,9 @@
             <td>
                 <a class="btn btn-dark" href="">update</a>
             </td>
-            <td></td>
+            <td>
+                <a class="btn btn-dark" href="{% url 'valid-update' 'LTO' %}">update</a>
+            </td>
         </tr>
     </tbody>
 </table>

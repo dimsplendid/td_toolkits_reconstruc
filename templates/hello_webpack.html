@@ -1,0 +1,9 @@
+{% extends "base_generic.html" %}
+{% load static %}
+
+{% block navbar %}
+. <strong>Webpack test</strong>
+{% endblock %}
+{% block content %}
+<script src="{% static 'index-bundle.js' %}"></script>
+{% endblock %}
