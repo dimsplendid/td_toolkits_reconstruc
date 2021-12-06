@@ -13,7 +13,7 @@ from openpyxl.reader.excel import load_workbook
 # Create your views here.
 
 from .forms import SearchFrom, UploadFileForm
-from .models import VHR, DeltaAngle, LiquidCrystal, LowTemperatureOperation, Polyimide, Seal, Validator, Vender, File
+from .models import VHR, DeltaAngle, LiquidCrystal, LowTemperatureOperation, Polyimide, PressureCookingTest, Seal, SealWVTR, Validator, Vender, File
 from .models import Adhesion, LowTemperatureStorage
 
 
@@ -37,6 +37,8 @@ def index(request):
     valid_LTS = Validator.objects.get(name='LTS')
     valid_delta_angle = Validator.objects.get(name='Δ angle')
     valid_VHR = Validator.objects.get(name='VHR(heat)')
+    valid_PCT = Validator.objects.get(name='PCT')
+    valid_SealWVTR = Validator.objects.get(name='Seal WVTR')
 
     # Render the HTML template index.html with the data in the context variable
     return render(
@@ -55,6 +57,8 @@ def index(request):
                 'valid_LTS': valid_LTS,
                 'valid_delta_angle': valid_delta_angle,
                 'valid_VHR': valid_VHR,
+                'valid_PCT': valid_PCT,
+                'valid_SealWVTR': valid_SealWVTR,
             }
         )
     )
@@ -227,8 +231,65 @@ def import_VHR(request):
 
 def import_PCT(request):
     if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILE)
-    pass
+        form = UploadFileForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            ws = load_workbook(
+                filename=request.FILES['file'].file
+            ).worksheets[0]
+
+            header = True
+            for row in ws.values:
+                if header:
+                    header = False
+                    continue
+                LC, _ = LiquidCrystal.objects.get_or_create(name=row[1])
+                PI, _ = Polyimide.objects.get_or_create(name=row[2])
+                seal, _ = Seal.objects.get_or_create(name=row[3])
+                vender, _ = Vender.objects.get_or_create(name=row[7])
+                file, _ = File.objects.get_or_create(name=row[8])
+                if not PressureCookingTest.objects.filter(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
+                                                 measure_condition=row[5], test_vehical=row[6],
+                                                 ).exists():
+                    PressureCookingTest.objects.create(value=row[4], LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
+                                              measure_condition=row[5], test_vehical=row[6],
+                                              )
+            return redirect(reverse('index'))
+
+        else:
+            return HttpResponseBadRequest()
+    return redirect(reverse('index'))
+
+def import_SealWVTR(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            print('valid!')
+            ws = load_workbook(
+                filename=request.FILES['file'].file).worksheets[0]
+
+            header = True  # using for skip header, it should have a nicer method?
+            for row in ws.values:
+                if header:
+                    header = False
+                    continue
+                LC, _ = LiquidCrystal.objects.get_or_create(name=row[1])
+                PI, _ = Polyimide.objects.get_or_create(name=row[2])
+                seal, _ = Seal.objects.get_or_create(name=row[3])
+                vender, _ = Vender.objects.get_or_create(name=row[7])
+                file, _ = File.objects.get_or_create(name=row[8])
+                if not SealWVTR.objects.filter(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
+                                          measure_condition_1=row[5], measure_condition_2=row[6],
+                                          ).exists():
+                    SealWVTR.objects.create(value=row[4], LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
+                                       measure_condition_1=row[5], measure_condition_2=row[6],
+                                       )
+            return redirect(reverse('index'))
+
+        else:
+            return HttpResponseBadRequest()
+    return redirect(reverse('index'))
 
 
 def query_table(query, model, writer, valid=True, cmp='gt'):
@@ -490,6 +551,39 @@ def filteredResultView(request):
                 )
                 plot_delta_angle = plot(delta_angle_fig, output_type='div')
             request.session['delta_angle_df'] = delta_angle_df.to_json()
+            
+            pct_df, pct_mean_df = filterQuery(query, PressureCookingTest)
+            plot_pct = None
+            if len(pct_mean_df) > 0:
+                pct_fig = px.bar(
+                    pct_mean_df,
+                    x='configuration',
+                    y='value',
+                    color='Vender',
+                    barmode='group',
+                    labels={
+                        'value': 'PCT(hours)'
+                    }
+                )
+                plot_pct = plot(pct_fig, output_type='div')
+            request.session['pct_df'] = pct_df.to_json()
+            
+            sealwvtr_df, sealwvtr_mean_df = filterQuery(query, SealWVTR)
+            plot_sealwvtr = None
+            if len(sealwvtr_mean_df) > 0:
+                sealwvtr_fig = px.bar(
+                    sealwvtr_mean_df,
+                    x='configuration',
+                    y='value',
+                    color='Vender',
+                    barmode='group',
+                    labels={
+                        'value': 'Seal WVTR'
+                    }
+                )
+                plot_sealwvtr = plot(sealwvtr_fig, output_type='div')
+            request.session['sealwvtr_df'] = sealwvtr_df.to_json()
+            
 
             context = {
                 'plot_vhr': plot_vhr,
@@ -497,6 +591,8 @@ def filteredResultView(request):
                 'plot_lts': plot_lts,
                 # 'plot_lto': plot_lto,
                 'plot_delta_angle': plot_delta_angle,
+                'plot_pct': plot_pct,
+                'plot_sealwvtr': plot_sealwvtr,
             }
 
             return render(request, 'filteredResult.html', context=context)
@@ -510,6 +606,8 @@ def xlsx_export(request):
     lts_df = pd.read_json(request.session['lts_df'])
     lto_df = pd.read_json(request.session['lto_df'])
     delta_angle_df = pd.read_json(request.session['delta_angle_df'])
+    pct_df = pd.read_json(request.session['pct_df'])
+    sealwvtr_df = pd.read_json(request.session['sealwvtr_df'])
 
     df = pd.concat(
         [
@@ -519,6 +617,8 @@ def xlsx_export(request):
             lts_df,
             lto_df,
             delta_angle_df,
+            pct_df,
+            sealwvtr_df,
         ],
         ignore_index=True
     )

@@ -77,8 +77,8 @@
             <td>
                 < {{ valid_delta_angle.value }}</td> <td>> {{ valid_VHR.value }}
             </td>
-            <td>TBD</td>
-            <td>TBD</td>
+            <td>> {{ valid_PCT.value }}</td>
+            <td>> {{ valid_SealWVTR.value }}</td>
             <td> PASS </td>
         </tr>
         <tr>
@@ -103,8 +103,14 @@
                 {{ vender.name }}
                 {% endfor %}
             </td>
-            <td>TBD</td>
-            <td>TBD</td>
+            <td>{% for vender in valid_PCT.venders.values %}
+                {{ vender.name }}
+                {% endfor %}
+            </td>
+            <td>{% for vender in valid_SealWVTR.venders.values %}
+                {{ vender.name }}
+                {% endfor %}
+            </td>
             <td>
                 {% for vender in valid_LTO.venders.values %}
                 {{ vender.name }}
@@ -126,10 +132,10 @@
                 <a class="btn btn-dark" href="{% url 'valid-update' 'VHR(heat)' %}">update</a>
             </td>
             <td>
-                <a class="btn btn-dark" href="">update</a>
+                <a class="btn btn-dark" href="{% url 'valid-update' 'PCT' %}">update</a>
             </td>
             <td>
-                <a class="btn btn-dark" href="">update</a>
+                <a class="btn btn-dark" href="{% url 'valid-update' 'Seal WVTR' %}">update</a>
             </td>
             <td>
                 <a class="btn btn-dark" href="{% url 'valid-update' 'LTO' %}">update</a>
@@ -175,5 +181,16 @@
     {{ file_form.as_table }}
     <input type="submit" value="submit" />
 </form>
-
+<form action="{% url 'import_pct' %}" enctype="multipart/form-data" method="post">
+    {% csrf_token %}
+    <label>PCT</label>
+    {{ file_form.as_table }}
+    <input type="submit" value="submit" />
+</form>
+<form action="{% url 'import_sealwvtr' %}" enctype="multipart/form-data" method="post">
+    {% csrf_token %}
+    <label>Seal WVTR</label>
+    {{ file_form.as_table }}
+    <input type="submit" value="submit" />
+</form>
 {% endblock %}
