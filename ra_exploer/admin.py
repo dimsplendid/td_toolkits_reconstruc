@@ -2,14 +2,11 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import VHR, DeltaAngle, File, LiquidCrystal, LowTemperatureStorage, Polyimide, Seal, Validator, Vender
+from .models import VHR, DeltaAngle, File, LowTemperatureStorage, Validator, Vender
 from .models import Adhesion, LowTemperatureOperation, PressureCookingTest, SealWVTR
 # from .models import VHR, DeltaAngle, Adhesion
 # from .models import LowTemperatrueOperation, LowTemperatrueStorage, ACIS
 
-admin.site.register(LiquidCrystal)
-admin.site.register(Polyimide)
-admin.site.register(Seal)
 admin.site.register(Vender)
 admin.site.register(File)
 # admin.site.register(VHR)

@@ -12,21 +12,24 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='AxomatricsLog',
+            name='LiquidCrystal',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(help_text='Enter a LC name', max_length=20, unique=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Condition',
+            name='Polyimide',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(help_text='Enter a PI name', max_length=20, unique=True)),
             ],
         ),
         migrations.CreateModel(
-            name='OpticsLog',
+            name='Seal',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(help_text='Enter a Seal name', max_length=20, unique=True)),
             ],
         ),
     ]

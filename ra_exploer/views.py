@@ -32,13 +32,13 @@ def index(request):
 
     form = SearchFrom
     file_form = UploadFileForm
-    valid_adhesion = Validator.objects.get(name='adhesion test')
-    valid_LTO = Validator.objects.get(name='LTO')
-    valid_LTS = Validator.objects.get(name='LTS')
-    valid_delta_angle = Validator.objects.get(name='Δ angle')
-    valid_VHR = Validator.objects.get(name='VHR(heat)')
-    valid_PCT = Validator.objects.get(name='PCT')
-    valid_SealWVTR = Validator.objects.get(name='Seal WVTR')
+    valid_adhesion = Validator.objects.get_or_create(name='adhesion test')[0]
+    valid_LTO = Validator.objects.get_or_create(name='LTO')[0]
+    valid_LTS = Validator.objects.get_or_create(name='LTS')[0]
+    valid_delta_angle = Validator.objects.get_or_create(name='Δ angle')[0]
+    valid_VHR = Validator.objects.get_or_create(name='VHR(heat)')[0]
+    valid_PCT = Validator.objects.get_or_create(name='PCT')[0]
+    valid_SealWVTR = Validator.objects.get_or_create(name='Seal WVTR')[0]
 
     # Render the HTML template index.html with the data in the context variable
     return render(
