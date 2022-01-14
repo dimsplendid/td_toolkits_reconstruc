@@ -22,7 +22,7 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('tr2calculator/', include('tr2calculator.urls')),
-    path('ra_exploer/', include('ra_exploer.urls')),
+    path('ra_explorer/', include('ra_exploer.urls')),
 ]
 
 
