@@ -388,10 +388,14 @@ class ValidatorUpdateView(UpdateView):
         return reverse('index')
 
 
-def ra_score(mean_df):
+def ra_score(mean_df, target='large'):
+    if len(mean_df) == 1:
+        return 0
     stdev = mean_df['value'].std()
     mean = mean_df['value'].mean()
     score = (mean_df['value'] - mean) / stdev
+    if target == 'small':
+        score = -score
     return score
 
 
@@ -458,7 +462,10 @@ def filterQuery(query, model, cmp='gt'):
         ).sort_values(by=['value'], ascending=False)
         result_mean_df['configuration'] = result_mean_df['LC'] + \
             ' ' + result_mean_df['PI'] + ' ' + result_mean_df['Seal']
-        result_mean_df['score'] = ra_score(result_mean_df)
+        if model.name in ['Δ angle', 'Seal WVTR']:
+            result_mean_df['score'] = ra_score(result_mean_df, target='small')
+        else:
+            result_mean_df['score'] = ra_score(result_mean_df)
         result_mean_df.insert(0, 'item', model.name)
         if model.name == 'LTO':
             values = []
