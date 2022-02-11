@@ -249,16 +249,17 @@ def import_PCT(request):
                 vender, _ = Vender.objects.get_or_create(name=row[7])
                 file, _ = File.objects.get_or_create(name=row[8])
                 if not PressureCookingTest.objects.filter(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
-                                                 measure_condition=row[5], test_vehical=row[6],
-                                                 ).exists():
+                                                          measure_condition=row[5], test_vehical=row[6],
+                                                          ).exists():
                     PressureCookingTest.objects.create(value=row[4], LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
-                                              measure_condition=row[5], test_vehical=row[6],
-                                              )
+                                                       measure_condition=row[5], test_vehical=row[6],
+                                                       )
             return redirect(reverse('index'))
 
         else:
             return HttpResponseBadRequest()
     return redirect(reverse('index'))
+
 
 def import_SealWVTR(request):
     if request.method == 'POST':
@@ -280,11 +281,11 @@ def import_SealWVTR(request):
                 vender, _ = Vender.objects.get_or_create(name=row[7])
                 file, _ = File.objects.get_or_create(name=row[8])
                 if not SealWVTR.objects.filter(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
-                                          measure_condition_1=row[5], measure_condition_2=row[6],
-                                          ).exists():
+                                               measure_condition_1=row[5], measure_condition_2=row[6],
+                                               ).exists():
                     SealWVTR.objects.create(value=row[4], LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
-                                       measure_condition_1=row[5], measure_condition_2=row[6],
-                                       )
+                                            measure_condition_1=row[5], measure_condition_2=row[6],
+                                            )
             return redirect(reverse('index'))
 
         else:
@@ -387,6 +388,13 @@ class ValidatorUpdateView(UpdateView):
         return reverse('index')
 
 
+def ra_score(mean_df):
+    stdev = mean_df['value'].std()
+    mean = mean_df['value'].mean()
+    score = (mean_df['value'] - mean) / stdev
+    return score
+
+
 def filterQuery(query, model, cmp='gt'):
     validator = Validator.objects.get_or_create(name=model.name)
     valid_val = validator[0].value
@@ -450,6 +458,8 @@ def filterQuery(query, model, cmp='gt'):
         ).sort_values(by=['value'], ascending=False)
         result_mean_df['configuration'] = result_mean_df['LC'] + \
             ' ' + result_mean_df['PI'] + ' ' + result_mean_df['Seal']
+        result_mean_df['score'] = ra_score(result_mean_df)
+        result_mean_df.insert(0, 'item', model.name)
         if model.name == 'LTO':
             values = []
             for item in result:
@@ -485,6 +495,7 @@ def filteredResultView(request):
                 )
                 plot_vhr = plot(vhr_fig, output_type='div')
             request.session['vhr_df'] = vhr_df.to_json()
+            request.session['vhr_mean_df'] = vhr_mean_df.to_json()
 
             # adhesion
             adhesion_df, adhesion_mean_df = filterQuery(query, Adhesion)
@@ -502,6 +513,7 @@ def filteredResultView(request):
                 )
                 plot_adhesion = plot(adhesion_fig, output_type='div')
             request.session['adhesion_df'] = adhesion_df.to_json()
+            request.session['adhesion_mean_df'] = adhesion_mean_df.to_json()
 
             # lts
             lts_df, lts_mean_df = filterQuery(query, LowTemperatureStorage)
@@ -519,6 +531,7 @@ def filteredResultView(request):
                 )
                 plot_lts = plot(lts_fig, output_type='div')
             request.session['lts_df'] = lts_df.to_json()
+            request.session['lts_mean_df'] = lts_mean_df.to_json()
 
             # lto
             lto_df, _ = filterQuery(query, LowTemperatureOperation)
@@ -551,7 +564,8 @@ def filteredResultView(request):
                 )
                 plot_delta_angle = plot(delta_angle_fig, output_type='div')
             request.session['delta_angle_df'] = delta_angle_df.to_json()
-            
+            request.session['delta_angle_mean_df'] = delta_angle_mean_df.to_json()
+
             pct_df, pct_mean_df = filterQuery(query, PressureCookingTest)
             plot_pct = None
             if len(pct_mean_df) > 0:
@@ -567,7 +581,8 @@ def filteredResultView(request):
                 )
                 plot_pct = plot(pct_fig, output_type='div')
             request.session['pct_df'] = pct_df.to_json()
-            
+            request.session['pct_mean_df'] = pct_mean_df.to_json()
+
             sealwvtr_df, sealwvtr_mean_df = filterQuery(query, SealWVTR)
             plot_sealwvtr = None
             if len(sealwvtr_mean_df) > 0:
@@ -583,7 +598,7 @@ def filteredResultView(request):
                 )
                 plot_sealwvtr = plot(sealwvtr_fig, output_type='div')
             request.session['sealwvtr_df'] = sealwvtr_df.to_json()
-            
+            request.session['sealwvtr_mean_df'] = sealwvtr_mean_df.to_json()
 
             context = {
                 'plot_vhr': plot_vhr,
@@ -601,13 +616,20 @@ def filteredResultView(request):
 
 def xlsx_export(request):
     df = pd.DataFrame()
+    mean_df = pd.DataFrame()
     vhr_df = pd.read_json(request.session['vhr_df'])
+    vhr_mean_df = pd.read_json(request.session['vhr_mean_df'])
     adhesion_df = pd.read_json(request.session['adhesion_df'])
+    adhesion_mean_df = pd.read_json(request.session['adhesion_mean_df'])
     lts_df = pd.read_json(request.session['lts_df'])
+    lts_mean_df = pd.read_json(request.session['lts_mean_df'])
     lto_df = pd.read_json(request.session['lto_df'])
     delta_angle_df = pd.read_json(request.session['delta_angle_df'])
+    delta_angle_mean_df = pd.read_json(request.session['delta_angle_mean_df'])
     pct_df = pd.read_json(request.session['pct_df'])
+    pct_mean_df = pd.read_json(request.session['pct_mean_df'])
     sealwvtr_df = pd.read_json(request.session['sealwvtr_df'])
+    sealwvtr_mean_df = pd.read_json(request.session['sealwvtr_mean_df'])
 
     df = pd.concat(
         [
@@ -622,10 +644,25 @@ def xlsx_export(request):
         ],
         ignore_index=True
     )
+
+    mean_df = pd.concat(
+        [
+            mean_df,
+            vhr_mean_df,
+            adhesion_mean_df,
+            lts_mean_df,
+            delta_angle_mean_df,
+            pct_mean_df,
+            sealwvtr_mean_df,
+        ],
+        ignore_index=True
+    )
+
     with BytesIO() as b:
         # Use the StringIO object as the filehandle
         writer = pd.ExcelWriter(b, engine='xlsxwriter')
         df.to_excel(writer, sheet_name='result', index=False)
+        mean_df.to_excel(writer, sheet_name='score', index=False)
         writer.save()
         # Set up the HTTP response
         filename = 'Result.xlsx'
