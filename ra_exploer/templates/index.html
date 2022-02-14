@@ -8,6 +8,7 @@
     <input type="submit" value="Search" />
 </form>
 <p>test</p> -->
+
 <form method="post" action="{% url 'filtered-result' %}">
     {% csrf_token %}
     <table>
@@ -22,10 +23,9 @@
             <tr>
                 <td>
                     <select class="form-select" multiple="multiple" name="LC">
-                        <option selected>ALL</option>
                         {% comment %} <option selected>N.A.</option> {% endcomment %}
                         {% for LC in LCs %}
-                        <option>{{ LC.name }}</option>
+                        <option>{{ LC }}</option>
                         {% endfor %}
                     </select>
                 </td>

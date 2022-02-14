@@ -26,7 +26,11 @@ def index(request):
         'Seal': [x[0] for x in Seal.objects.all().values_list('name')],
     }
 
-    LCs = LiquidCrystal.objects.all().order_by('name')
+    LCs = pd.DataFrame.from_records(
+        LiquidCrystal.objects.all().order_by('name').values('name'))['name'].to_list()
+    LCs = ['ALL'] + LCs
+    if request.session['filtered LC list']:
+        LCs = pd.read_json(request.session['filtered LC list'])['LC'].to_list()
     PIs = Polyimide.objects.all().order_by('name')
     seals = Seal.objects.all().order_by('name')
 
@@ -661,8 +665,25 @@ def xlsx_export(request):
     with BytesIO() as b:
         # Use the StringIO object as the filehandle
         writer = pd.ExcelWriter(b, engine='xlsxwriter')
-        df.to_excel(writer, sheet_name='result', index=False)
-        mean_df.to_excel(writer, sheet_name='score', index=False)
+        df.to_excel(writer, sheet_name='RA Result', index=False)
+        mean_df.to_excel(writer, sheet_name='RA Score', index=False)
+        if request.session['opt result'] and request.session['opt score']:
+            opt_result = pd.read_json(request.session['opt result'])
+            opt_score = pd.read_json(request.session['opt score'])
+            opt_result.to_excel(
+                writer, sheet_name='OPT Result', index=False)
+            opt_score.to_excel(
+                writer, sheet_name='OPT Score', index=False)
+            ra_score = mean_df.groupby(
+                by=['LC', 'PI', 'Seal'], as_index=False).mean().fillna(0)
+            ra_score = ra_score.rename(columns={'score': 'ra score'})
+            opt_score = opt_score.rename(columns={'sum': 'opt score'})
+            total_score = ra_score[['LC', 'PI', 'Seal', 'ra score']].merge(
+                opt_score[['LC', 'opt score']], on='LC', how='left')
+            total_score['score'] = total_score['ra score'] + \
+                total_score['opt score']
+            total_score = total_score.sort_values(by='score', ascending=False)
+            total_score.to_excel(writer, sheet_name='Total Score', index=False)
         writer.save()
         # Set up the HTTP response
         filename = 'Result.xlsx'

@@ -33,7 +33,7 @@
                 <div class="col-sm-2 text-secondary bg-light">
                     {% block sidebar %}        
                     <a class="btn mt-1" href="{% url 'index' %}">RA Explorer</a></li>
-                    <a class="btn mt-1" href="">TR2 Calculator</a>                    
+                    <a class="btn mt-1" href="{% url 'tr2_calculator:query' %}">TR2 Calculator</a>                    
                     {% endblock %}
                 </div>
                 <div class="col-sm-10" >{% block content %}{% endblock %}</div>

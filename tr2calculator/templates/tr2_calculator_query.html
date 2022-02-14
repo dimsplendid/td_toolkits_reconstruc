@@ -1,0 +1,28 @@
+{% extends "tr2_calculator_generic.html" %}
+
+{% block navbar %}
+{{ block.super }}
+. <strong>Query<strong>
+{% endblock navbar%}
+
+{% block content %}
+<form action="" method="GET">
+    <select class="form-select" multiple="multiple" name="q">
+        {% for batch in batch_list %}
+        <option>{{ batch.value }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">search</button>
+</form>
+<hr>
+{% if q %}
+    <p> Batch {{ q }} Score Estimate:</p>
+    <div>
+        {{ div_fig | safe }}
+    </div>
+    <a class="btn btn-dark" href="{% url 'tr2_calculator:query-download' %}">Download</a>
+    <hr>
+    <a class="btn btn-dark" href="{% url 'index' %}">Advanced RA search</a>
+    <hr />
+{% endif %}
+{% endblock content%}

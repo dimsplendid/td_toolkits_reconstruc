@@ -1,0 +1,14 @@
+{% extends "tr2_calculator_generic.html" %}
+
+{% block navbar %}
+{{ block.super }}
+. <strong>Upload<strong>
+{% endblock navbar%}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Send">
+</form>
+{% endblock content%}

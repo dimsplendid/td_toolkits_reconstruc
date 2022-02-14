@@ -1,10 +1,9 @@
 from django.db import models
-from django.db.models.deletion import SET_NULL
-from django.db.models.fields import CharField
 from django.db.models.fields.related import ForeignKey
 from materials.models import LiquidCrystal, Polyimide, Seal
 
 # Create your models here.
+
 
 class Vender(models.Model):
     """Model record Vender"""
@@ -239,6 +238,7 @@ class LowTemperatureOperation(models.Model):
 #     def value_remark(self):
 #         return ''
 
+
 class PressureCookingTest(models.Model):
     name = 'PCT'
     LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
@@ -286,6 +286,7 @@ class SealWVTR(models.Model):
     )
     vender = ForeignKey(Vender, on_delete=models.RESTRICT, null=True)
     file_source = ForeignKey(File, on_delete=models.RESTRICT)
+
     def cond(self):
         return "measure conditions 1: " + str(self.measure_condition_1) + ", measure condition 2: " + str(self.measure_condition_2)
 
