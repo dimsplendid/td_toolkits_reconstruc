@@ -1,11 +1,12 @@
 from io import BytesIO
 
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, View
 from django.views.generic.edit import FormView
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
 from plotly.offline import plot
@@ -13,6 +14,8 @@ from plotly.offline import plot
 from .forms import TR2ResultUploadForm
 from .models import OpticsLogTest, Batch, Plateform
 from .models import LiquidCrystal
+
+from utils.TR2_tools import tr2_score
 
 
 class HomepageView(TemplateView):
@@ -77,25 +80,19 @@ class TR2ResultUploadFormView(FormView):
         return super().form_valid(form)
 
 
-def opt_score(column, cmp='gt'):
-    stdev = column.std()
-    mean = column.mean()
-    score = (column - mean) / stdev
-    if cmp == 'lt':
-        score = -score
-    return score
-
-
 class TR2OptSearchView(View):
     def get(self, request, *args, **kwargs):
-        batch_list = Batch.objects.all()
-        q = self.request.GET.get('q')
+        lc_list = pd.DataFrame.from_records(
+            OpticsLogTest.objects.all().values("liquidCrystal__name").distinct()
+        )['liquidCrystal__name'].to_list()
+        q = self.request.GET.getlist('q')
         div_fig = None
+        score_table = None
         if q:
             result = OpticsLogTest.objects.filter(
                 v_percent='Vref',
                 cell_gap=3.0,
-                batch__value=q
+                liquidCrystal__name__in=q
             )
 
             opt_result_df = pd.DataFrame.from_records(
@@ -115,41 +112,65 @@ class TR2OptSearchView(View):
                 'RT(ms)',
                 'CR',
             ]
-            opt_score_df = opt_result_df[['LC']].copy()
-            opt_score_df['LC%'] = opt_score(
-                opt_result_df['LC%'].astype('float'))
-            opt_score_df['ΔEab*'] = opt_score(
-                opt_result_df['ΔEab*'].astype('float'), 'lt')
-            opt_score_df['RT(ms)'] = opt_score(
-                opt_result_df['RT(ms)'].astype('float'), 'lt')
-            opt_score_df['CR'] = opt_score(opt_result_df['CR'].astype('float'))
 
-            opt_score_df['sum'] = opt_score_df.sum(axis=1)
-            opt_score_df = opt_score_df.sort_values(by='sum', ascending=False)
+            def opt_formatter(x):
+                return np.round(9 * x) + 1
+
+            opt_score_df = opt_result_df[['LC']].copy()
+            opt_score_df['LC%'] = tr2_score(
+                opt_result_df['LC%'].astype('float'),
+                method='min-max',
+                formatter=opt_formatter)
+            opt_score_df['ΔEab*'] = tr2_score(
+                opt_result_df['ΔEab*'].astype('float'), cmp='lt',
+                method='min-max',
+                formatter=opt_formatter)
+            opt_score_df['RT(ms)'] = tr2_score(
+                opt_result_df['RT(ms)'].astype('float'), cmp='lt',
+                method='min-max',
+                formatter=opt_formatter)
+            opt_score_df['CR'] = tr2_score(
+                opt_result_df['CR'].astype('float'),
+                method='min-max',
+                formatter=opt_formatter)
+
+            opt_score_df['Sum'] = opt_score_df.sum(axis=1)
+            opt_score_df = opt_score_df.sort_values(by='Sum', ascending=False)
             plot_df = opt_score_df.set_index('LC').stack().reset_index()
             plot_df.columns = ['LC', 'Item', 'Score']
-            opt_fig = px.bar(plot_df, x='LC', y='Score',
-                             color='Item', barmode='group')
+            opt_fig = px.bar(plot_df, x='Item', y='Score',
+                             color='LC', barmode='group')
             div_fig = plot(opt_fig, output_type='div')
+            request.session['opt plot'] = div_fig
+
             request.session['opt result'] = opt_result_df.to_json()
             request.session['opt score'] = opt_score_df.to_json()
             request.session['filtered LC list'] = opt_score_df[[
                 'LC']].to_json()
+            score_table = opt_score_df.to_html(
+                float_format=lambda x: f'{x:.0f}',
+                classes=['table', 'table-striped'],
+                justify='center',
+                index=False,
+            )
+            request.session['opt score table'] = score_table
 
         return render(
             request,
             'tr2_calculator_query.html',
             context=({
-                'batch_list': batch_list,
+                'lc_list': lc_list,
                 'q': q,
                 'div_fig': div_fig,
+                'score_table': score_table
             })
         )
 
 
 class TR2OptDataDownload(View):
     def get(self, request, *args, **kwargs):
-        if request.session['opt result'] and request.session['opt score']:
+        if ('opt result' in request.session) and \
+                ('opt score' in request.session):
             opt_result_df = pd.read_json(request.session['opt result'])
             opt_score_df = pd.read_json(request.session['opt score'])
             with BytesIO() as b:
@@ -166,3 +187,4 @@ class TR2OptDataDownload(View):
                 )
                 response['Content-Disposition'] = f'attachment; filename={filename}'
                 return response
+        return redirect(reverse_lazy('tr2_calculator:query'))

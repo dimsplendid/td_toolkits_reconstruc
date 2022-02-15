@@ -21,4 +21,5 @@ urlpatterns = [
          views.xlsx_export, name='filtered-result-download'),
     path('test/', views.test, name='test'),
     path('test/download/', views.test_download, name='test-download'),
+    path('create/batch', views.BatchUploadView.as_view(), name='ra-batch-upload')
 ]

@@ -6,6 +6,29 @@
 {% block content %}
 <a class="btn btn-dark" href="{% url 'filtered-result-download'%}">raw download</a>
 <hr/>
+
+{% if opt_plot %}
+<h3>TR2 OPT Score</h3>
+<div>
+    {{ opt_plot|safe }}
+</div>
+<div>
+    {{ opt_score_table|safe }}
+</div>
+<hr>
+{% endif %}
+
+{% if ra_plot %}
+<h3>RA Score</h3>
+<div>
+    {{ ra_plot|safe }}
+</div>
+<div>
+    {{ ra_score_table|safe }}
+</div>
+<hr>
+{% endif %}
+<h3>RA Item compare</h3>
 <div>
     {{ plot_adhesion|safe }}
 </div>
@@ -28,4 +51,4 @@
     {{ plot_sealwvtr|safe }}
 </div>
 
-{% endblock %}
+{% endblock content %}

@@ -8,17 +8,20 @@
 {% block content %}
 <form action="" method="GET">
     <select class="form-select" multiple="multiple" name="q">
-        {% for batch in batch_list %}
-        <option>{{ batch.value }}</option>
+        {% for lc in lc_list %}
+        <option>{{ lc }}</option>
         {% endfor %}
     </select>
-    <button type="submit">search</button>
+    <button class='btn btn-dark' type="submit">search</button>
 </form>
 <hr>
 {% if q %}
-    <p> Batch {{ q }} Score Estimate:</p>
+    <p> LC Score Estimate:</p>
     <div>
         {{ div_fig | safe }}
+    </div>
+    <div class="table">
+        {{ score_table | safe}}
     </div>
     <a class="btn btn-dark" href="{% url 'tr2_calculator:query-download' %}">Download</a>
     <hr>

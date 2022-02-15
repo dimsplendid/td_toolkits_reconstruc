@@ -114,3 +114,6 @@ main.col-9 div {
 p     {display: table-row;}
 label {display: table-cell;}
 input {display: table-cell;} */
+
+.right_aligned_df td { text-align: right; }
+

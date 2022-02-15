@@ -38,15 +38,15 @@ class OpticsLogTest(models.Model):
     batch = ForeignKey(Batch, on_delete=models.RESTRICT)
     liquidCrystal = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT)
     v90 = models.DecimalField(
-        max_digits=5, decimal_places=4)
+        max_digits=7, decimal_places=4)
     v95 = models.DecimalField(
-        max_digits=5, decimal_places=4)
+        max_digits=7, decimal_places=4)
     v99 = models.DecimalField(
-        max_digits=5, decimal_places=4)
+        max_digits=7, decimal_places=4)
     v100 = models.DecimalField(
-        max_digits=5, decimal_places=4)
+        max_digits=7, decimal_places=4)
     vop = models.DecimalField(
-        max_digits=5, decimal_places=4)
+        max_digits=7, decimal_places=4)
 
     class VoltagePercent(models.TextChoices):
         V90 = 'V90', 'V90'

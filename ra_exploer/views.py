@@ -1,12 +1,16 @@
 from io import BytesIO
-import plotly.express as px
-import pandas as pd
-from plotly.offline import plot
+
 from django.views.generic.edit import UpdateView
+from django.views.generic import View
 from django.http.response import HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls.base import reverse
 from django.http import HttpResponse
+
+import numpy as np
+import plotly.express as px
+import pandas as pd
+from plotly.offline import plot
 import csv
 from openpyxl.reader.excel import load_workbook
 
@@ -15,10 +19,14 @@ from openpyxl.reader.excel import load_workbook
 from .forms import SearchFrom, UploadFileForm
 from .models import VHR, DeltaAngle, LiquidCrystal, LowTemperatureOperation, Polyimide, PressureCookingTest, Seal, SealWVTR, Validator, Vender, File
 from .models import Adhesion, LowTemperatureStorage
+from utils.TR2_tools import tr2_score
 
 
 def index(request):
     """View function for home page of site."""
+    if request.method == 'POST':
+        if 'filtered LC list' in request.session:
+            del request.session['filtered LC list']
 
     query = {
         'LC': [x[0] for x in LiquidCrystal.objects.all().values_list('name')],
@@ -28,14 +36,11 @@ def index(request):
 
     LCs = pd.DataFrame.from_records(
         LiquidCrystal.objects.all().order_by('name').values('name'))['name'].to_list()
-    LCs = ['ALL'] + LCs
     if 'filtered LC list' in request.session:
         LCs = pd.read_json(request.session['filtered LC list'])['LC'].to_list()
     PIs = Polyimide.objects.all().order_by('name')
     seals = Seal.objects.all().order_by('name')
 
-    form = SearchFrom
-    file_form = UploadFileForm
     valid_adhesion = Validator.objects.get_or_create(name='adhesion test')[0]
     valid_LTO = Validator.objects.get_or_create(name='LTO')[0]
     valid_LTS = Validator.objects.get_or_create(name='LTS')[0]
@@ -50,12 +55,10 @@ def index(request):
         'index.html',
         context=(
             {
-                'form': form,
                 'query': query,
                 'LCs': LCs,
                 'PIs': PIs,
                 'seals': seals,
-                'file_form': file_form,
                 'valid_adhesion': valid_adhesion,
                 'valid_LTO': valid_LTO,
                 'valid_LTS': valid_LTS,
@@ -63,6 +66,7 @@ def index(request):
                 'valid_VHR': valid_VHR,
                 'valid_PCT': valid_PCT,
                 'valid_SealWVTR': valid_SealWVTR,
+                'opt_lc_list': request.session.get('filtered LC list')
             }
         )
     )
@@ -392,17 +396,6 @@ class ValidatorUpdateView(UpdateView):
         return reverse('index')
 
 
-def ra_score(mean_df, target='large'):
-    if len(mean_df) == 1:
-        return 0
-    stdev = mean_df['value'].std()
-    mean = mean_df['value'].mean()
-    score = (mean_df['value'] - mean) / stdev
-    if target == 'small':
-        score = -score
-    return score
-
-
 def filterQuery(query, model, cmp='gt'):
     validator = Validator.objects.get_or_create(name=model.name)
     valid_val = validator[0].value
@@ -466,10 +459,24 @@ def filterQuery(query, model, cmp='gt'):
         ).sort_values(by=['value'], ascending=False)
         result_mean_df['configuration'] = result_mean_df['LC'] + \
             ' ' + result_mean_df['PI'] + ' ' + result_mean_df['Seal']
+
+        def ra_formatter(x):
+            return np.round(9 * x) + 1
+
         if model.name in ['Δ angle', 'Seal WVTR']:
-            result_mean_df['score'] = ra_score(result_mean_df, target='small')
+            result_mean_df['score'] = tr2_score(
+                result_mean_df['value'],
+                cmp='lt',
+                method='min-max',
+                formatter=ra_formatter
+            )
         else:
-            result_mean_df['score'] = ra_score(result_mean_df)
+            result_mean_df['score'] = tr2_score(
+                result_mean_df['value'],
+                cmp='gt',
+                method='min-max',
+                formatter=ra_formatter
+            )
         result_mean_df.insert(0, 'item', model.name)
         if model.name == 'LTO':
             values = []
@@ -505,8 +512,6 @@ def filteredResultView(request):
                     }
                 )
                 plot_vhr = plot(vhr_fig, output_type='div')
-            request.session['vhr_df'] = vhr_df.to_json()
-            request.session['vhr_mean_df'] = vhr_mean_df.to_json()
 
             # adhesion
             adhesion_df, adhesion_mean_df = filterQuery(query, Adhesion)
@@ -523,8 +528,6 @@ def filteredResultView(request):
                     }
                 )
                 plot_adhesion = plot(adhesion_fig, output_type='div')
-            request.session['adhesion_df'] = adhesion_df.to_json()
-            request.session['adhesion_mean_df'] = adhesion_mean_df.to_json()
 
             # lts
             lts_df, lts_mean_df = filterQuery(query, LowTemperatureStorage)
@@ -541,24 +544,10 @@ def filteredResultView(request):
                     }
                 )
                 plot_lts = plot(lts_fig, output_type='div')
-            request.session['lts_df'] = lts_df.to_json()
-            request.session['lts_mean_df'] = lts_mean_df.to_json()
 
             # lto
             lto_df, _ = filterQuery(query, LowTemperatureOperation)
-            # lto_fig = px.bar(
-            #     lto_mean_df,
-            #     x='configuration',
-            #     y='value',
-            #     color='Vender',
-            #     barmode='group',
-            #     labels={
-            #         'value': 'lto(kgw)'
-            #     }
-            # )
-            # plot_lto = plot(lto_fig, output_type='div')
-            request.session['lto_df'] = lto_df.to_json()
-            # delta_angle
+
             plot_delta_angle = None
             delta_angle_df, delta_angle_mean_df = filterQuery(
                 query, DeltaAngle, 'lt')
@@ -574,8 +563,6 @@ def filteredResultView(request):
                     }
                 )
                 plot_delta_angle = plot(delta_angle_fig, output_type='div')
-            request.session['delta_angle_df'] = delta_angle_df.to_json()
-            request.session['delta_angle_mean_df'] = delta_angle_mean_df.to_json()
 
             pct_df, pct_mean_df = filterQuery(query, PressureCookingTest)
             plot_pct = None
@@ -591,8 +578,6 @@ def filteredResultView(request):
                     }
                 )
                 plot_pct = plot(pct_fig, output_type='div')
-            request.session['pct_df'] = pct_df.to_json()
-            request.session['pct_mean_df'] = pct_mean_df.to_json()
 
             sealwvtr_df, sealwvtr_mean_df = filterQuery(query, SealWVTR)
             plot_sealwvtr = None
@@ -608,10 +593,69 @@ def filteredResultView(request):
                     }
                 )
                 plot_sealwvtr = plot(sealwvtr_fig, output_type='div')
-            request.session['sealwvtr_df'] = sealwvtr_df.to_json()
-            request.session['sealwvtr_mean_df'] = sealwvtr_mean_df.to_json()
+
+            ra_result = pd.concat(
+                [
+                    vhr_df,
+                    adhesion_df,
+                    lts_df,
+                    lto_df,
+                    delta_angle_df,
+                    pct_df,
+                    sealwvtr_df,
+                ],
+                ignore_index=True
+            )
+
+            ra_mean = pd.concat(
+                [
+                    vhr_mean_df,
+                    adhesion_mean_df,
+                    lts_mean_df,
+                    delta_angle_mean_df,
+                    pct_mean_df,
+                    sealwvtr_mean_df,
+                ],
+                ignore_index=True
+            )
+
+            ra_score = ra_mean[['item', 'configuration', 'score']].groupby(
+                by=['item', 'configuration']).mean()
+            ra_score = ra_score.unstack(level=0)
+            ra_score = ra_score.fillna(0)
+            ra_score[('score', 'Sum')] = ra_score.sum(axis=1)
+            ra_score = ra_score.sort_values(
+                by=('score', 'Sum'), ascending=False)
+            ra_score = ra_score.droplevel(0, axis=1).reset_index()
+            ra_score.columns.name = None
+            ra_score_table = ra_score.to_html(
+                float_format=lambda x: f'{x:.0f}',
+                classes=['table', 'table-striped'],
+                justify='center',
+                index=False,
+            )
+
+            ra_plot_df = ra_score.set_index(
+                'configuration').stack().reset_index()
+            ra_plot_df.columns = ['Configuration', 'Item', 'Score']
+
+            ra_fig = px.bar(
+                ra_plot_df,
+                x='Item',
+                y='Score',
+                color='Configuration',
+                barmode='group'
+            )
+            ra_fig_div = plot(ra_fig, output_type='div')
+
+            request.session['ra_result'] = ra_result.to_json()
+            request.session['ra_score'] = ra_score.to_json()
 
             context = {
+                'opt_plot': request.session.get('opt plot'),
+                'opt_score_table': request.session.get('opt score table'),
+                'ra_plot': ra_fig_div,
+                'ra_score_table': ra_score_table,
                 'plot_vhr': plot_vhr,
                 'plot_adhesion': plot_adhesion,
                 'plot_lts': plot_lts,
@@ -626,55 +670,16 @@ def filteredResultView(request):
 
 
 def xlsx_export(request):
-    df = pd.DataFrame()
-    mean_df = pd.DataFrame()
-    vhr_df = pd.read_json(request.session['vhr_df'])
-    vhr_mean_df = pd.read_json(request.session['vhr_mean_df'])
-    adhesion_df = pd.read_json(request.session['adhesion_df'])
-    adhesion_mean_df = pd.read_json(request.session['adhesion_mean_df'])
-    lts_df = pd.read_json(request.session['lts_df'])
-    lts_mean_df = pd.read_json(request.session['lts_mean_df'])
-    lto_df = pd.read_json(request.session['lto_df'])
-    delta_angle_df = pd.read_json(request.session['delta_angle_df'])
-    delta_angle_mean_df = pd.read_json(request.session['delta_angle_mean_df'])
-    pct_df = pd.read_json(request.session['pct_df'])
-    pct_mean_df = pd.read_json(request.session['pct_mean_df'])
-    sealwvtr_df = pd.read_json(request.session['sealwvtr_df'])
-    sealwvtr_mean_df = pd.read_json(request.session['sealwvtr_mean_df'])
 
-    df = pd.concat(
-        [
-            df,
-            vhr_df,
-            adhesion_df,
-            lts_df,
-            lto_df,
-            delta_angle_df,
-            pct_df,
-            sealwvtr_df,
-        ],
-        ignore_index=True
-    )
-
-    mean_df = pd.concat(
-        [
-            mean_df,
-            vhr_mean_df,
-            adhesion_mean_df,
-            lts_mean_df,
-            delta_angle_mean_df,
-            pct_mean_df,
-            sealwvtr_mean_df,
-        ],
-        ignore_index=True
-    )
+    df = pd.read_json(request.session['ra_result'])
+    mean_df = pd.read_json(request.session['ra_score'])
 
     with BytesIO() as b:
         # Use the StringIO object as the filehandle
         writer = pd.ExcelWriter(b, engine='xlsxwriter')
         df.to_excel(writer, sheet_name='RA Result', index=False)
         mean_df.to_excel(writer, sheet_name='RA Score', index=False)
-        if request.session['opt result'] and request.session['opt score']:
+        if request.session.get('opt result') and request.session.get('opt score'):
             opt_result = pd.read_json(request.session['opt result'])
             opt_score = pd.read_json(request.session['opt score'])
             opt_result.to_excel(
@@ -745,3 +750,14 @@ def test_download(request):
         )
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
         return response
+
+
+class BatchUploadView(View):
+    def get(self, request, *args, **kwargs):
+        return render(
+            request,
+            'batchUpload.html',
+            context=({
+                'file_form': UploadFileForm,
+            })
+        )
