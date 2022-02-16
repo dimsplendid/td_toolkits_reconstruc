@@ -630,7 +630,7 @@ def filteredResultView(request):
             ra_score.columns.name = None
             ra_score_table = ra_score.to_html(
                 float_format=lambda x: f'{x:.0f}',
-                classes=['table', 'table-striped'],
+                classes=['table', 'table-striped', 'text-center'],
                 justify='center',
                 index=False,
             )

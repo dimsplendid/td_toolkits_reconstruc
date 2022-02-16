@@ -149,7 +149,7 @@ class TR2OptSearchView(View):
                 'LC']].to_json()
             score_table = opt_score_df.to_html(
                 float_format=lambda x: f'{x:.0f}',
-                classes=['table', 'table-striped'],
+                classes=['table', 'table-striped', 'text-center'],
                 justify='center',
                 index=False,
             )
