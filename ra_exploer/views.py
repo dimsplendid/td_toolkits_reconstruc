@@ -686,16 +686,15 @@ def xlsx_export(request):
                 writer, sheet_name='OPT Result', index=False)
             opt_score.to_excel(
                 writer, sheet_name='OPT Score', index=False)
-            ra_score = mean_df.groupby(
-                by=['LC', 'PI', 'Seal'], as_index=False).mean().fillna(0)
-            ra_score = ra_score.rename(columns={'score': 'ra score'})
+            mean_df.to_excel(
+                writer, sheet_name='RA Score', index=False)
             opt_score = opt_score.rename(columns={'sum': 'opt score'})
-            total_score = ra_score[['LC', 'PI', 'Seal', 'ra score']].merge(
-                opt_score[['LC', 'opt score']], on='LC', how='left')
-            total_score['score'] = total_score['ra score'] + \
-                total_score['opt score']
-            total_score = total_score.sort_values(by='score', ascending=False)
-            total_score.to_excel(writer, sheet_name='Total Score', index=False)
+            # total_score = ra_score[['LC', 'PI', 'Seal', 'ra score']].merge(
+            #     opt_score[['LC', 'opt score']], on='LC', how='left')
+            # total_score['score'] = total_score['ra score'] + \
+            #     total_score['opt score']
+            # total_score = total_score.sort_values(by='score', ascending=False)
+            # total_score.to_excel(writer, sheet_name='Total Score', index=False)
         writer.save()
         # Set up the HTTP response
         filename = 'Result.xlsx'
