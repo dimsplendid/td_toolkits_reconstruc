@@ -86,15 +86,20 @@ class TR2OptSearchView(View):
             OpticsLogTest.objects.all().values("liquidCrystal__name").distinct()
         )['liquidCrystal__name'].to_list()
         q = self.request.GET.getlist('q')
+        q = self.request.GET.getlist('q')
+        q_lc_list = None
         div_fig = None
         score_table = None
+
         if q:
+            q_lc_list = LiquidCrystal.objects.filter(
+                name__in=q
+            )
             result = OpticsLogTest.objects.filter(
                 v_percent='Vref',
                 cell_gap=3.0,
-                liquidCrystal__name__in=q
+                liquidCrystal__in=q_lc_list
             )
-
             opt_result_df = pd.DataFrame.from_records(
                 result.values(
                     "liquidCrystal__name",
@@ -160,6 +165,7 @@ class TR2OptSearchView(View):
             'tr2_calculator_query.html',
             context=({
                 'lc_list': lc_list,
+                'q_lc_list': q_lc_list,
                 'q': q,
                 'div_fig': div_fig,
                 'score_table': score_table

@@ -192,3 +192,4 @@ class OpticsLogTest(models.Model):
         choices=RemarkChoice.choices,
         default=RemarkChoice.EXTRA,
     )
+

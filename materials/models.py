@@ -50,6 +50,13 @@ class LiquidCrystal(models.Model):
         blank=True,
     )
 
+    designed_cell_gap = models.DecimalField(
+        max_digits=4,
+        decimal_places=1,
+        blank=True,
+        default=3.0
+    )
+
     class META:
         ordering = ['name']
 

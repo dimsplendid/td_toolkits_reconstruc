@@ -15,7 +15,7 @@
     <button class='btn btn-dark' type="submit">search</button>
 </form>
 <hr>
-<h4>Criteria Table(TODO)</h4>
+{% comment %} <h4>Criteria Table(TODO)</h4>
 <table class="table text-center small table-hover">
     <thead>
         <th>Item</th>
@@ -33,9 +33,23 @@
             <th>Venders</th>
         </tr>
     </tbody>
-</table>
+</table> {% endcomment %}
 <hr>
 {% if q %}
+    <table class="table text-center small table-hover">
+        <thead>
+            <th>LC</th>
+            <th>Designed Cell Gap</th>
+        </thead>
+        <tbody>
+            {% for lc in q_lc_list %}
+            <tr>
+                <td>{{ lc.name }}</td>
+                <td>{{ lc.designed_cell_gap }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     <p> LC Score Estimate:</p>
     <div>
         {{ div_fig | safe }}
