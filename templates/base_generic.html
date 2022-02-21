@@ -32,7 +32,7 @@
             <div class="row">
                 <div class="col-sm-2 text-secondary bg-light">
                     {% block sidebar %}        
-                    <a class="btn mt-1" href="{% url 'index' %}">RA Explorer</a></li>
+                    <a class="btn mt-1" href="{% url 'index' %}?clean=1">RA Explorer</a></li>
                     <a class="btn mt-1" href="{% url 'tr2_calculator:query' %}">TR2 OPT Calculator</a>                    
                     {% endblock %}
                 </div>

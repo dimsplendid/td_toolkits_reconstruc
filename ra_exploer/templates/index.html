@@ -125,6 +125,16 @@
             </td>
         </tr>
         <tr>
+            <th>Weight</th>
+            <td> {{ valid_adhesion.weight }}</td>
+            <td> {{ valid_LTS.weight }}</td>
+            <td>{{ valid_delta_angle.weight }}</td>
+            <td> {{ valid_VHR.weight }}</td>
+            <td> {{ valid_PCT.weight }}</td>
+            <td> {{ valid_SealWVTR.weight }}</td>
+            <td> PASS </td>
+        </tr>
+        <tr>
             <th>Actions</th>
             <td>
                 <a class="btn btn-dark" href="{% url 'valid-update' 'adhesion test' %}">update</a>

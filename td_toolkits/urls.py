@@ -24,6 +24,7 @@ urlpatterns = [
     path('tr2calculator/', include(('tr2calculator.urls', 'tr2_calculator'),
          namespace='tr2calculator')),
     path('ra_explorer/', include('ra_exploer.urls')),
+    path('materials/', include('materials.urls', namespace='materials'))
 ]
 
 

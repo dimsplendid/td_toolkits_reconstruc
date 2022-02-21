@@ -1,5 +1,6 @@
 from io import BytesIO
 
+from django.db.models import F
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
@@ -96,8 +97,8 @@ class TR2OptSearchView(View):
                 name__in=q
             )
             result = OpticsLogTest.objects.filter(
-                v_percent='Vref',
-                cell_gap=3.0,
+                v_percent='V99',
+                cell_gap=F('liquidCrystal__designed_cell_gap'),
                 liquidCrystal__in=q_lc_list
             )
             opt_result_df = pd.DataFrame.from_records(

@@ -38,6 +38,11 @@ class Validator(models.Model):
         default=0.00,
     )
     venders = models.ManyToManyField(Vender)
+    weight = models.DecimalField(
+        max_digits=3, 
+        decimal_places=1,
+        default=1.0
+    )
 
     def __str__(self):
         return str(self.value)

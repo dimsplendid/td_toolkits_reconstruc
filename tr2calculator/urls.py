@@ -7,5 +7,5 @@ urlpatterns = [
          name='results-upload'),
     path('query/', views.TR2OptSearchView.as_view(), name='query'),
     path('query/download/', views.TR2OptDataDownload.as_view(),
-         name='query-download')
+         name='query-download'),
 ]

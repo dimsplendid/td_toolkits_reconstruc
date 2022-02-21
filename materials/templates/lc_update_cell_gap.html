@@ -1,0 +1,11 @@
+{% extends "base_generic.html" %}
+{% block navbar %}
+. materials . LC: {{ object.name }} . <strong>Designed Cell Gap Update</strong>
+{% endblock navbar %}
+{% block content %}
+<form class="form" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input class="btn-dark" type="submit" value="Update"/>
+</form>
+{% endblock content %}

@@ -24,7 +24,8 @@ from utils.TR2_tools import tr2_score
 
 def index(request):
     """View function for home page of site."""
-    if request.method == 'POST':
+    clean = request.GET.get('clean')
+    if clean:
         if 'filtered LC list' in request.session:
             del request.session['filtered LC list']
 
@@ -37,7 +38,7 @@ def index(request):
     LCs = pd.DataFrame.from_records(
         LiquidCrystal.objects.all().order_by('name').values('name'))['name'].to_list()
     if 'filtered LC list' in request.session:
-        LCs = pd.read_json(request.session['filtered LC list'])['LC'].to_list()
+        LCs = pd.read_json(request.session['filtered LC list'])['LC'].to_list() + ['N.A.']
     PIs = Polyimide.objects.all().order_by('name')
     seals = Seal.objects.all().order_by('name')
 
@@ -390,7 +391,7 @@ class ValidatorUpdateView(UpdateView):
     template_name_suffix = 'update'
     model = Validator
     slug_field = 'name'
-    fields = ['value', 'venders']
+    fields = ['value', 'venders', 'weight']
 
     def get_success_url(self):
         return reverse('index')
@@ -400,13 +401,14 @@ def filterQuery(query, model, cmp='gt'):
     validator = Validator.objects.get_or_create(name=model.name)
     valid_val = validator[0].value
     valid_venders = validator[0].venders.all()
+    weight = float(validator[0].weight)
 
     if 'ALL' in query['LC']:
-        query['LC'] = LiquidCrystal.objects.all().values_list('name')
+        query['LC'] = list(LiquidCrystal.objects.all().values_list('name', flat=True))
     if 'ALL' in query['PI']:
-        query['PI'] = Polyimide.objects.all().values_list('name')
+        query['PI'] = list(Polyimide.objects.all().values_list('name', flat=True))
     if 'ALL' in query['Seal']:
-        query['Seal'] = Seal.objects.all().values_list('name')
+        query['Seal'] = list(Seal.objects.all().values_list('name', flat=True))
     if cmp == 'gt':
         result = model.objects.filter(
             LC__name__in=query['LC'],
@@ -468,14 +470,16 @@ def filterQuery(query, model, cmp='gt'):
                 result_mean_df['value'],
                 cmp='lt',
                 method='min-max',
-                formatter=ra_formatter
+                formatter=ra_formatter,
+                scale=weight
             )
         else:
             result_mean_df['score'] = tr2_score(
                 result_mean_df['value'],
                 cmp='gt',
                 method='min-max',
-                formatter=ra_formatter
+                formatter=ra_formatter,
+                scale=weight
             )
         result_mean_df.insert(0, 'item', model.name)
         if model.name == 'LTO':
@@ -607,37 +611,85 @@ def filteredResultView(request):
                 ignore_index=True
             )
 
-            ra_mean = pd.concat(
-                [
-                    vhr_mean_df,
-                    adhesion_mean_df,
-                    lts_mean_df,
-                    delta_angle_mean_df,
-                    pct_mean_df,
-                    sealwvtr_mean_df,
-                ],
-                ignore_index=True
-            )
+            # ra_mean = pd.concat(
+            #     [
+            #         vhr_mean_df,
+            #         adhesion_mean_df,
+            #         lts_mean_df,
+            #         delta_angle_mean_df,
+            #         pct_mean_df,
+            #         sealwvtr_mean_df,
+            #     ],
+            #     ignore_index=True
+            # )
 
-            ra_score = ra_mean[['item', 'configuration', 'score']].groupby(
-                by=['item', 'configuration']).mean()
-            ra_score = ra_score.unstack(level=0)
-            ra_score = ra_score.fillna(0)
-            ra_score[('score', 'Sum')] = ra_score.sum(axis=1)
-            ra_score = ra_score.sort_values(
-                by=('score', 'Sum'), ascending=False)
-            ra_score = ra_score.droplevel(0, axis=1).reset_index()
-            ra_score.columns.name = None
+            # ra_score = ra_mean[['item', 'configuration', 'score']].groupby(
+            #     by=['item', 'configuration']).mean()
+            # ra_score = ra_score.unstack(level=0)
+            # ra_score = ra_score.fillna(0)
+            # ra_score[('score', 'Sum')] = ra_score.sum(axis=1)
+            # ra_score = ra_score.sort_values(
+            #     by=('score', 'Sum'), ascending=False)
+            # ra_score = ra_score.droplevel(0, axis=1).reset_index()
+            # ra_score.columns.name = None
+            # if 'ALL' in query['LC']:
+            #     query['LC'] = list(LiquidCrystal.objects.all().values_list('name', flat=True))
+            # if 'ALL' in query['PI']:
+            #     query['PI'] = list(Polyimide.objects.all().values_list('name', flat=True))
+            # if 'ALL' in query['Seal']:
+            #     query['Seal'] = list(Seal.objects.all().values_list('name', flat=True))
+            df_LC = pd.DataFrame({'LC': query['LC']})
+            df_PI = pd.DataFrame({'PI': query['PI']})
+            df_seal = pd.DataFrame({'Seal': query['Seal']})
+
+            df_LC_PI = df_LC.merge(df_PI, how='cross')
+            df = df_LC_PI.merge(df_seal, how='cross')
+
+            
+            adhesion_mean_df = adhesion_mean_df.groupby(by=['PI', 'Seal'], as_index=False).mean()
+            df = df.merge(adhesion_mean_df[['PI', 'Seal', 'score']], on=['PI', 'Seal'], how='left').rename(columns={'score': 'Adhesion'})
+
+            delta_angle_mean_df = delta_angle_mean_df.groupby(by=['LC', 'PI'], as_index=False).mean()
+            df = df.merge(delta_angle_mean_df[['LC', 'PI', 'score']], on=['LC', 'PI'], how='left').rename(columns={'score': 'Δ angle'})
+
+            vhr_mean_df = vhr_mean_df.groupby(by=['LC', 'PI', 'Seal'], as_index=False).mean()
+            df = df.merge(vhr_mean_df[['LC', 'PI', 'Seal', 'score']], on=['LC', 'PI', 'Seal'], how='left').rename(columns={'score': 'VHR'})
+
+            lts_mean_df = lts_mean_df.groupby(by=['LC'], as_index=False).mean()
+            df = df.merge(lts_mean_df[['LC', 'score']], on=['LC'], how='left').rename(columns={'score': 'LTS'})
+
+            pct_mean_df = pct_mean_df.groupby(by=['LC', 'PI', 'Seal'], as_index=False).mean()
+            df = df.merge(pct_mean_df[['LC', 'PI', 'Seal', 'score']], on=['LC', 'PI', 'Seal'], how='left').rename(columns={'score': 'PCT'})
+
+            sealwvtr_mean_df = sealwvtr_mean_df.groupby(by=['Seal'], as_index=False).mean()
+            df = df.merge(sealwvtr_mean_df[['Seal', 'score']], on=['Seal'], how='left').rename(columns={'score': 'Seal WVTR'})
+            
+            df_fill0 = df.fillna(0)
+            df_fill0 = df_fill0[
+                (df_fill0.LC != 'N.A.') &
+                (df_fill0.PI != 'N.A.') &
+                (df_fill0.Seal != 'N.A.')
+            ]
+            df_fill0['Sum'] = df_fill0[['Adhesion', 'VHR', 'LTS', 'PCT', 'Seal WVTR']].sum(axis=1)
+            df_fill0 = df_fill0.sort_values(by='Sum', ascending=False)
+            # print(df_fill0['LC'])
+            # print(df_fill0['PI'])
+            # print(df_fill0['Seal'])
+
+            df_fill0['Configuration'] = df_fill0['LC'] + ' ' + df_fill0['PI'] + ' ' + df_fill0['Seal']
+            ra_score = df_fill0
             ra_score_table = ra_score.to_html(
                 float_format=lambda x: f'{x:.0f}',
-                classes=['table', 'table-striped', 'text-center  '],
+                classes=['table', 'table-hover', 'text-center  '],
                 justify='center',
                 index=False,
             )
-
-            ra_plot_df = ra_score.set_index(
-                'configuration').stack().reset_index()
-            ra_plot_df.columns = ['Configuration', 'Item', 'Score']
+            
+            ra_plot_df = df_fill0[:10] \
+                .set_index('Configuration')[['Adhesion', 'VHR', 'LTS', 'PCT', 'Seal WVTR', 'Sum']] \
+                .unstack() \
+                .reset_index() \
+                .rename(columns={'level_0': 'Item', 0: 'Score'})
 
             ra_fig = px.bar(
                 ra_plot_df,

@@ -40,17 +40,24 @@
         <thead>
             <th>LC</th>
             <th>Designed Cell Gap</th>
+            <th>Action</th>
         </thead>
         <tbody>
             {% for lc in q_lc_list %}
             <tr>
                 <td>{{ lc.name }}</td>
                 <td>{{ lc.designed_cell_gap }}</td>
+                <td>
+                    <a class="btn btn-dark"
+                       href="{%url 'materials:update_lc_designed_cell_gap' slug=lc.name%}?next={{request.path}}">
+                    Update
+                    </a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-    <p> LC Score Estimate:</p>
+    <p> LC Score Estimate(@V99):</p>
     <div>
         {{ div_fig | safe }}
     </div>
