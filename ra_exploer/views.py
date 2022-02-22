@@ -638,6 +638,7 @@ def filteredResultView(request):
             #     query['PI'] = list(Polyimide.objects.all().values_list('name', flat=True))
             # if 'ALL' in query['Seal']:
             #     query['Seal'] = list(Seal.objects.all().values_list('name', flat=True))
+            print(query)
             df_LC = pd.DataFrame({'LC': query['LC']})
             df_PI = pd.DataFrame({'PI': query['PI']})
             df_seal = pd.DataFrame({'Seal': query['Seal']})
@@ -645,24 +646,32 @@ def filteredResultView(request):
             df_LC_PI = df_LC.merge(df_PI, how='cross')
             df = df_LC_PI.merge(df_seal, how='cross')
 
-            
-            adhesion_mean_df = adhesion_mean_df.groupby(by=['PI', 'Seal'], as_index=False).mean()
-            df = df.merge(adhesion_mean_df[['PI', 'Seal', 'score']], on=['PI', 'Seal'], how='left').rename(columns={'score': 'Adhesion'})
+            def is_worth_df(df):
+                return not(df.empty or (df['score'].sum() == 0))
 
-            delta_angle_mean_df = delta_angle_mean_df.groupby(by=['LC', 'PI'], as_index=False).mean()
-            df = df.merge(delta_angle_mean_df[['LC', 'PI', 'score']], on=['LC', 'PI'], how='left').rename(columns={'score': 'Δ angle'})
+            if is_worth_df(adhesion_mean_df):
+                adhesion_mean_df = adhesion_mean_df.groupby(by=['PI', 'Seal'], as_index=False).mean()
+                df = df.merge(adhesion_mean_df[['PI', 'Seal', 'score']], on=['PI', 'Seal'], how='left').rename(columns={'score': 'Adhesion'})
 
-            vhr_mean_df = vhr_mean_df.groupby(by=['LC', 'PI', 'Seal'], as_index=False).mean()
-            df = df.merge(vhr_mean_df[['LC', 'PI', 'Seal', 'score']], on=['LC', 'PI', 'Seal'], how='left').rename(columns={'score': 'VHR'})
+            if is_worth_df(delta_angle_mean_df):
+                delta_angle_mean_df = delta_angle_mean_df.groupby(by=['LC', 'PI'], as_index=False).mean()
+                df = df.merge(delta_angle_mean_df[['LC', 'PI', 'score']], on=['LC', 'PI'], how='left').rename(columns={'score': 'Δ angle'})
 
-            lts_mean_df = lts_mean_df.groupby(by=['LC'], as_index=False).mean()
-            df = df.merge(lts_mean_df[['LC', 'score']], on=['LC'], how='left').rename(columns={'score': 'LTS'})
+            if is_worth_df(vhr_mean_df):
+                vhr_mean_df = vhr_mean_df.groupby(by=['LC', 'PI', 'Seal'], as_index=False).mean()
+                df = df.merge(vhr_mean_df[['LC', 'PI', 'Seal', 'score']], on=['LC', 'PI', 'Seal'], how='left').rename(columns={'score': 'VHR'})
 
-            pct_mean_df = pct_mean_df.groupby(by=['LC', 'PI', 'Seal'], as_index=False).mean()
-            df = df.merge(pct_mean_df[['LC', 'PI', 'Seal', 'score']], on=['LC', 'PI', 'Seal'], how='left').rename(columns={'score': 'PCT'})
+            if is_worth_df(lts_mean_df):
+                lts_mean_df = lts_mean_df.groupby(by=['LC'], as_index=False).mean()
+                df = df.merge(lts_mean_df[['LC', 'score']], on=['LC'], how='left').rename(columns={'score': 'LTS'})
 
-            sealwvtr_mean_df = sealwvtr_mean_df.groupby(by=['Seal'], as_index=False).mean()
-            df = df.merge(sealwvtr_mean_df[['Seal', 'score']], on=['Seal'], how='left').rename(columns={'score': 'Seal WVTR'})
+            if is_worth_df(pct_mean_df):
+                pct_mean_df = pct_mean_df.groupby(by=['LC', 'PI', 'Seal'], as_index=False).mean()
+                df = df.merge(pct_mean_df[['LC', 'PI', 'Seal', 'score']], on=['LC', 'PI', 'Seal'], how='left').rename(columns={'score': 'PCT'})
+
+            if is_worth_df(sealwvtr_mean_df):
+                sealwvtr_mean_df = sealwvtr_mean_df.groupby(by=['Seal'], as_index=False).mean()
+                df = df.merge(sealwvtr_mean_df[['Seal', 'score']], on=['Seal'], how='left').rename(columns={'score': 'Seal WVTR'})
             
             df_fill0 = df.fillna(0)
             df_fill0 = df_fill0[
@@ -670,7 +679,9 @@ def filteredResultView(request):
                 (df_fill0.PI != 'N.A.') &
                 (df_fill0.Seal != 'N.A.')
             ]
-            df_fill0['Sum'] = df_fill0[['Adhesion', 'VHR', 'LTS', 'PCT', 'Seal WVTR']].sum(axis=1)
+
+            item_columns = list(df.columns[3:])
+            df_fill0['Sum'] = df_fill0[item_columns].sum(axis=1)
             df_fill0 = df_fill0.sort_values(by='Sum', ascending=False)
             # print(df_fill0['LC'])
             # print(df_fill0['PI'])
@@ -686,7 +697,7 @@ def filteredResultView(request):
             )
             
             ra_plot_df = df_fill0[:10] \
-                .set_index('Configuration')[['Adhesion', 'VHR', 'LTS', 'PCT', 'Seal WVTR', 'Sum']] \
+                .set_index('Configuration')[item_columns + ['Sum']] \
                 .unstack() \
                 .reset_index() \
                 .rename(columns={'level_0': 'Item', 0: 'Score'})

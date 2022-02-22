@@ -16,6 +16,7 @@ def tr2_score(column, method='mean', cmp='gt', scale=1., formatter=None):
         'lt': smaller the better
     scale: float, optional, default 1
         Scale the score by multiply.
+        Scale would after formatter.
     formatter: one parameter function, optional, default None
         Modified final score, like round to integer
 
@@ -43,8 +44,9 @@ def tr2_score(column, method='mean', cmp='gt', scale=1., formatter=None):
         else:
             score = (max - column) / (max - min)
 
-    score *= scale
     if formatter:
         score = formatter(score)
+    
+    score *= scale
 
     return score

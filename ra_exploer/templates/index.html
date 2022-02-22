@@ -3,11 +3,6 @@
 . <strong>RA Explorer</strong>
 {% endblock %}
 {% block content %}
-<!-- <form method="post" action="{% url 'export_results_csv' %}">
-    {% csrf_token %} {{ form.as_table }}
-    <input type="submit" value="Search" />
-</form>
-<p>test</p> -->
 
 <form method="post" action="{% url 'filtered-result' %}">
     {% csrf_token %}
