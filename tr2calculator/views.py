@@ -88,16 +88,19 @@ class TR2OptSearchView(View):
         )['liquidCrystal__name'].to_list()
         q = self.request.GET.getlist('q')
         q = self.request.GET.getlist('q')
+
+        # pre define some render parameter
         q_lc_list = None
         div_fig = None
         score_table = None
+        result_table = None
 
         if q:
             q_lc_list = LiquidCrystal.objects.filter(
                 name__in=q
             )
             result = OpticsLogTest.objects.filter(
-                v_percent='V99',
+                v_percent='Vref',
                 cell_gap=F('liquidCrystal__designed_cell_gap'),
                 liquidCrystal__in=q_lc_list
             )
@@ -159,6 +162,13 @@ class TR2OptSearchView(View):
                 justify='center',
                 index=False,
             )
+            opt_result_df.iloc[:, 1:] = opt_result_df.iloc[:, 1:].astype('float')
+            result_table = opt_result_df.to_html(
+                float_format=lambda x: f'{x:.2f}',
+                classes=['table', 'table-striped', 'text-center'],
+                justify='center',
+                index=False,
+            )
             request.session['opt score table'] = score_table
 
         return render(
@@ -169,7 +179,8 @@ class TR2OptSearchView(View):
                 'q_lc_list': q_lc_list,
                 'q': q,
                 'div_fig': div_fig,
-                'score_table': score_table
+                'score_table': score_table,
+                'result_table': result_table
             })
         )
 

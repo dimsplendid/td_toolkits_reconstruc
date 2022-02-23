@@ -57,12 +57,15 @@
             {% endfor %}
         </tbody>
     </table>
-    <p> LC Score Estimate(@V99):</p>
+    <p> LC Score Estimate(@V<sub>ref</sub>):</p>
     <div>
         {{ div_fig | safe }}
     </div>
     <div class="table">
         {{ score_table | safe}}
+    </div>
+    <div class="table">
+        {{ result_table | safe}}
     </div>
     <a class="btn btn-dark" href="{% url 'tr2_calculator:query-download' %}">Download</a>
     <hr>
