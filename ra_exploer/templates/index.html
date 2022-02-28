@@ -65,6 +65,7 @@
             <th>Adhesion(kgw)</th>
             <th>LTS(days)</th>
             <th>Δangle(°)</th>
+            <th>U-shape AC%</th>
             <th>VHR(%)</th>
             <th>PCT</th>
             <th>Seal WVTR</th>
@@ -76,9 +77,9 @@
             <th>Criteria</th>
             <td>> {{ valid_adhesion.value }}</td>
             <td>> {{ valid_LTS.value }}</td>
-            <td>
-                < {{ valid_delta_angle.value }}</td> <td>> {{ valid_VHR.value }}
-            </td>
+            <td>< {{ valid_delta_angle.value }}</td>
+            <td>< {{ valid_ushape_ac.value }}</td>
+            <td>> {{ valid_VHR.value }}</td>
             <td>> {{ valid_PCT.value }}</td>
             <td>> {{ valid_SealWVTR.value }}</td>
             <td> PASS </td>
@@ -97,6 +98,11 @@
             </td>
             <td>
                 {% for vender in valid_delta_angle.venders.values %}
+                {{ vender.name }}
+                {% endfor %}
+            </td>
+            <td>
+                {% for vender in valid_ushape_ac.venders.values %}
                 {{ vender.name }}
                 {% endfor %}
             </td>
@@ -124,6 +130,7 @@
             <td> {{ valid_adhesion.weight }}</td>
             <td> {{ valid_LTS.weight }}</td>
             <td>{{ valid_delta_angle.weight }}</td>
+            <td>{{ valid_ushape_ac.weight }}</td>
             <td> {{ valid_VHR.weight }}</td>
             <td> {{ valid_PCT.weight }}</td>
             <td> {{ valid_SealWVTR.weight }}</td>
@@ -139,6 +146,9 @@
             </td>
             <td>
                 <a class="btn btn-dark" href="{% url 'valid-update' 'Δ angle' %}">update</a>
+            </td>
+            <td>
+                <a class="btn btn-dark" href="{% url 'valid-update' 'U-shape AC%' %}">update</a>
             </td>
             <td>
                 <a class="btn btn-dark" href="{% url 'valid-update' 'VHR(heat)' %}">update</a>

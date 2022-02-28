@@ -3,7 +3,13 @@ from django.contrib import admin
 # Register your models here.
 
 from .models import VHR, DeltaAngle, File, LowTemperatureStorage, Validator, Vender
-from .models import Adhesion, LowTemperatureOperation, PressureCookingTest, SealWVTR
+from .models import (
+    Adhesion, 
+    LowTemperatureOperation, 
+    PressureCookingTest, 
+    SealWVTR,
+    UShapeAC,
+)
 # from .models import VHR, DeltaAngle, Adhesion
 # from .models import LowTemperatrueOperation, LowTemperatrueStorage, ACIS
 
@@ -82,3 +88,8 @@ class SealWVTRAdmin(admin.ModelAdmin):
 
 
 admin.site.register(SealWVTR, SealWVTRAdmin)
+
+class UShapeACAdimin(admin.ModelAdmin):
+    list_display = ('LC', 'PI', 'seal', 'value')
+
+admin.site.register(UShapeAC, UShapeACAdimin)

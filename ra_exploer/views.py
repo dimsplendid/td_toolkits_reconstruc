@@ -17,7 +17,20 @@ from openpyxl.reader.excel import load_workbook
 # Create your views here.
 
 from .forms import SearchFrom, UploadFileForm
-from .models import VHR, DeltaAngle, LiquidCrystal, LowTemperatureOperation, Polyimide, PressureCookingTest, Seal, SealWVTR, Validator, Vender, File
+from .models import (
+    VHR, 
+    DeltaAngle, 
+    LiquidCrystal, 
+    LowTemperatureOperation, 
+    Polyimide, 
+    PressureCookingTest, 
+    Seal, 
+    SealWVTR, 
+    Validator, 
+    Vender, 
+    File,
+    UShapeAC,
+)
 from .models import Adhesion, LowTemperatureStorage
 from utils.TR2_tools import tr2_score
 
@@ -46,6 +59,7 @@ def index(request):
     valid_LTO = Validator.objects.get_or_create(name='LTO')[0]
     valid_LTS = Validator.objects.get_or_create(name='LTS')[0]
     valid_delta_angle = Validator.objects.get_or_create(name='Δ angle')[0]
+    valid_ushape_ac = Validator.objects.get_or_create(name='U-shape AC%')[0]
     valid_VHR = Validator.objects.get_or_create(name='VHR(heat)')[0]
     valid_PCT = Validator.objects.get_or_create(name='PCT')[0]
     valid_SealWVTR = Validator.objects.get_or_create(name='Seal WVTR')[0]
@@ -64,6 +78,7 @@ def index(request):
                 'valid_LTO': valid_LTO,
                 'valid_LTS': valid_LTS,
                 'valid_delta_angle': valid_delta_angle,
+                'valid_ushape_ac':valid_ushape_ac,
                 'valid_VHR': valid_VHR,
                 'valid_PCT': valid_PCT,
                 'valid_SealWVTR': valid_SealWVTR,
@@ -287,14 +302,45 @@ def import_SealWVTR(request):
                 LC, _ = LiquidCrystal.objects.get_or_create(name=row[1])
                 PI, _ = Polyimide.objects.get_or_create(name=row[2])
                 seal, _ = Seal.objects.get_or_create(name=row[3])
+                vender, _ = Vender.objects.get_or_create(name=row[8])
+                file, _ = File.objects.get_or_create(name=row[9])
+                if not SealWVTR.objects.filter(
+                    LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
+                    temperature=row[5], humidity=row[6], thickness=row[7]).exists():
+                    SealWVTR.objects.create(
+                        value=row[4], LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
+                        temperature=row[5], humidity=row[6], thickness=row[7])
+            return redirect(reverse('index'))
+
+        else:
+            return HttpResponseBadRequest()
+    return redirect(reverse('index'))
+
+def import_ushape_ac(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            print('valid!')
+            ws = load_workbook(
+                filename=request.FILES['file'].file).worksheets[0]
+
+            header = True  # using for skip header, it should have a nicer method?
+            for row in ws.values:
+                if header:
+                    header = False
+                    continue
+                LC, _ = LiquidCrystal.objects.get_or_create(name=row[1])
+                PI, _ = Polyimide.objects.get_or_create(name=row[2])
+                seal, _ = Seal.objects.get_or_create(name=row[3])
                 vender, _ = Vender.objects.get_or_create(name=row[7])
                 file, _ = File.objects.get_or_create(name=row[8])
-                if not SealWVTR.objects.filter(LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
-                                               measure_condition_1=row[5], measure_condition_2=row[6],
-                                               ).exists():
-                    SealWVTR.objects.create(value=row[4], LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
-                                            measure_condition_1=row[5], measure_condition_2=row[6],
-                                            )
+                if not UShapeAC.objects.filter(
+                    LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
+                    time=row[5], temperature=row[6],).exists():
+                    UShapeAC.objects.create(
+                        value=row[4], LC=LC, PI=PI, seal=seal, vender=vender, file_source=file,
+                        time=row[5], temperature=row[6],)
             return redirect(reverse('index'))
 
         else:
@@ -397,7 +443,7 @@ class ValidatorUpdateView(UpdateView):
         return reverse('index')
 
 
-def filterQuery(query, model, cmp='gt'):
+def filterQuery(query, model, cmp='gt', abs=True):
     validator = Validator.objects.get_or_create(name=model.name)
     valid_val = validator[0].value
     valid_venders = validator[0].venders.all()
@@ -459,28 +505,22 @@ def filterQuery(query, model, cmp='gt'):
 
         result_mean_df = result_df.groupby(by=['LC', 'PI', 'Seal', 'Vender'], as_index=False).mean(
         ).sort_values(by=['value'], ascending=False)
+        result_mean_df['value'] = result_mean_df['value'].abs()
         result_mean_df['configuration'] = result_mean_df['LC'] + \
             ' ' + result_mean_df['PI'] + ' ' + result_mean_df['Seal']
 
         def ra_formatter(x):
             return np.round(9 * x) + 1
 
-        if model.name in ['Δ angle', 'Seal WVTR']:
-            result_mean_df['score'] = tr2_score(
-                result_mean_df['value'],
-                cmp='lt',
-                method='min-max',
-                formatter=ra_formatter,
-                scale=weight
-            )
-        else:
-            result_mean_df['score'] = tr2_score(
-                result_mean_df['value'],
-                cmp='gt',
-                method='min-max',
-                formatter=ra_formatter,
-                scale=weight
-            )
+        
+        result_mean_df['score'] = tr2_score(
+            result_mean_df['value'],
+            cmp=cmp,
+            method='min-max',
+            formatter=ra_formatter,
+            scale=weight
+        )
+        
         result_mean_df.insert(0, 'item', model.name)
         if model.name == 'LTO':
             values = []
@@ -567,6 +607,22 @@ def filteredResultView(request):
                     }
                 )
                 plot_delta_angle = plot(delta_angle_fig, output_type='div')
+            
+            plot_ushape_ac = None
+            ushape_ac_df, ushape_ac_mean_df = filterQuery(
+                query, UShapeAC, 'lt')
+            if len(ushape_ac_mean_df) > 0:
+                ushape_ac_fig = px.bar(
+                    ushape_ac_mean_df,
+                    x='configuration',
+                    y='value',
+                    color='Vender',
+                    barmode='group',
+                    labels={
+                        'value': 'U-shape AC%'
+                    }
+                )
+                plot_ushape_ac = plot(ushape_ac_fig, output_type='div')
 
             pct_df, pct_mean_df = filterQuery(query, PressureCookingTest)
             plot_pct = None
@@ -605,6 +661,7 @@ def filteredResultView(request):
                     lts_df,
                     lto_df,
                     delta_angle_df,
+                    ushape_ac_df,
                     pct_df,
                     sealwvtr_df,
                 ],
@@ -656,6 +713,10 @@ def filteredResultView(request):
             if is_worth_df(delta_angle_mean_df):
                 delta_angle_mean_df = delta_angle_mean_df.groupby(by=['LC', 'PI'], as_index=False).mean()
                 df = df.merge(delta_angle_mean_df[['LC', 'PI', 'score']], on=['LC', 'PI'], how='left').rename(columns={'score': 'Δ angle'})
+            
+            if is_worth_df(ushape_ac_mean_df):
+                ushape_ac_mean_df = ushape_ac_mean_df.groupby(by=['LC', 'PI'], as_index=False).mean()
+                df = df.merge(ushape_ac_mean_df[['LC', 'PI', 'score']], on=['LC', 'PI'], how='left').rename(columns={'score': 'U-shape AC%'})
 
             if is_worth_df(vhr_mean_df):
                 vhr_mean_df = vhr_mean_df.groupby(by=['LC', 'PI', 'Seal'], as_index=False).mean()

@@ -14,6 +14,7 @@ urlpatterns = [
     path('import/vhr/', views.import_VHR, name='import_vhr'),
     path('import/pct/', views.import_PCT, name='import_pct'),
     path('import/sealwvtr/', views.import_SealWVTR, name='import_sealwvtr'),
+    path('import/ushape-ac/', views.import_ushape_ac, name='import_ushape_ac'),
     path('validator/<str:slug>/update/',
          views.ValidatorUpdateView.as_view(), name='valid-update'),
     path('query/filteredResult/', views.filteredResultView, name='filtered-result'),

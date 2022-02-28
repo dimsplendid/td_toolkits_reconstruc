@@ -280,20 +280,47 @@ class SealWVTR(models.Model):
     seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
     value = models.DecimalField(max_digits=5, decimal_places=2)
     unit = ''
-    measure_condition_1 = models.CharField(
-        max_length=40,
-        help_text="measure condition"
-    )
+    # measure_condition_1 = models.CharField(
+    #     max_length=40,
+    #     help_text="measure condition"
+    # )
 
-    measure_condition_2 = models.CharField(
-        max_length=40,
-        help_text="measure condition"
-    )
+    # measure_condition_2 = models.CharField(
+    #     max_length=40,
+    #     help_text="measure condition"
+    # )
+    temperature = models.FloatField(default=0)
+    humidity = models.FloatField(default=0)
+    thickness = models.FloatField(default=0)
+
     vender = ForeignKey(Vender, on_delete=models.RESTRICT, null=True)
     file_source = ForeignKey(File, on_delete=models.RESTRICT)
 
     def cond(self):
-        return "measure conditions 1: " + str(self.measure_condition_1) + ", measure condition 2: " + str(self.measure_condition_2)
+        return "temperature: " + str(self.temperature) \
+             + "°C, humidity: " + str(self.humidity) \
+             + "%, thickness: " + str(self.thickness) + " um."
+
+    def value_remark(self):
+        return ''
+
+class UShapeAC(models.Model):
+    name = 'U-shape AC%'
+    unit = ''
+
+    LC = ForeignKey(LiquidCrystal, on_delete=models.RESTRICT,
+                    null=True, blank=True)
+    PI = ForeignKey(Polyimide, on_delete=models.RESTRICT,
+                    null=True, blank=True)
+    seal = ForeignKey(Seal, on_delete=models.RESTRICT, null=True, blank=True)
+    value = models.FloatField()
+    time = models.FloatField()
+    temperature = models.FloatField()
+    vender = ForeignKey(Vender, on_delete=models.RESTRICT, null=True)
+    file_source = ForeignKey(File, on_delete=models.RESTRICT)
+
+    def cond(self):
+        return f'time: {self.time}, temp: {self.temperature}'
 
     def value_remark(self):
         return ''

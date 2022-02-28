@@ -110,7 +110,8 @@ class TR2OptSearchView(View):
                     "lc_percent",
                     "delta_e_ab_star",
                     "response_time",
-                    "contrast_ratio"
+                    "contrast_ratio",
+                    'remark',
                 )
             )
 
@@ -120,6 +121,7 @@ class TR2OptSearchView(View):
                 'ΔEab*',
                 'RT(ms)',
                 'CR',
+                'remark',
             ]
 
             def opt_formatter(x):
@@ -162,7 +164,8 @@ class TR2OptSearchView(View):
                 justify='center',
                 index=False,
             )
-            opt_result_df.iloc[:, 1:] = opt_result_df.iloc[:, 1:].astype('float')
+            opt_result_df.iloc[:, 1:-1] = opt_result_df.iloc[:, 1:-1].astype('float')
+
             result_table = opt_result_df.to_html(
                 float_format=lambda x: f'{x:.2f}',
                 classes=['table', 'table-striped', 'text-center'],
