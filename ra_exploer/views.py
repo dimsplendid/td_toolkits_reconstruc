@@ -522,6 +522,8 @@ def filterQuery(query, model, cmp='gt', abs=True):
         )
         
         result_mean_df.insert(0, 'item', model.name)
+        result_mean_df['configuration'] = result_mean_df['configuration']\
+                                        .str.replace('N.A.', '', regex=False)
         if model.name == 'LTO':
             values = []
             for item in result:
